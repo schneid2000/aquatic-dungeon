@@ -2,12 +2,18 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	bridge.load("graphics/Tiles/bridge_vertical.png");
+	bridge_v.load("graphics/Tiles/bridge_vertical.png");
+	bridge_h.load("graphics/Tiles/bridge_horizontal.png");
 	water.load("graphics/Tiles/water.png");
 	crabman_front.load("graphics/Sprites/Crabman/crabman_front.png");
 	ceiling.load("graphics/Tiles/ceiling.png");
 	floor.load("graphics/Tiles/floor.png"); 
+	wall.load("graphics/Tiles/wall.png");
 	level.setup_start_tiles();
+	level.load_room_presets();
+	level.add_random_room_randomly();
+	player = Player(level.get_start_tile());
+	srand(time(NULL));
 }
 
 //--------------------------------------------------------------
@@ -19,13 +25,16 @@ void ofApp::update(){
 void ofApp::draw(){
 	int pixel_x = 0;
 	int pixel_y = 0;
-	std::cout << level.get_start_display_tile().get_coordinate_x() << ", " << level.get_start_display_tile().get_coordinate_y() << "\n";
+	//std::cout << level.get_start_display_tile().get_coordinate_x() << ", " << level.get_start_display_tile().get_coordinate_y() << "\n";
 
-	for (int y = level.get_start_display_tile().get_coordinate_y(); y < level.get_start_display_tile().get_coordinate_y() + kDisplaySize; y++) {
-		for (int x = level.get_start_display_tile().get_coordinate_x(); x < level.get_start_display_tile().get_coordinate_x() + kDisplaySize; x++) {
+	for (int y = player.get_current_tile().get_coordinate_y() - 3; y < player.get_current_tile().get_coordinate_y() - 3 + kDisplaySize; y++) {
+		for (int x = player.get_current_tile().get_coordinate_x() - 3; x < player.get_current_tile().get_coordinate_x() - 3 + kDisplaySize; x++) {
 			if ((x >= 0 && x < kSize) && (y >= 0 && y < kSize)) {
 				ofImage image = get_image_from_type(level.get_tile(y, x).get_type());
 				image.draw(pixel_x, pixel_y);
+				if (x == player.get_player_x() && y == player.get_player_y()) {
+					crabman_front.draw(pixel_x, pixel_y);
+				}
 				
 			}
 			pixel_x += 128;
@@ -37,7 +46,17 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+	int x = player.get_player_x();
+	int y = player.get_player_y();
+	if (key == 'w' && level.is_valid_coordinate(x, y - 1) && level.get_tile(x, y - 1).get_passability()) {
+		player.set_current_tile(x, y - 1);
+	} else if (key == 'a' && level.is_valid_coordinate(x - 1, y) && level.get_tile(x - 1, y).get_passability()) {
+		player.set_current_tile(x - 1, y);
+	} else if (key == 's' && level.is_valid_coordinate(x, y + 1) && level.get_tile(x, y + 1).get_passability()) {
+		player.set_current_tile(x, y + 1);
+	} else if (key == 'd' && level.is_valid_coordinate(x + 1, y) && level.get_tile(x + 1, y).get_passability()) {
+		player.set_current_tile(x + 1, y);
+	}
 }
 
 //--------------------------------------------------------------
@@ -92,11 +111,15 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 ofImage ofApp::get_image_from_type(std::string type) {
 	if (type == "bridge_v") {
-		return bridge;
+		return bridge_v;
+	} else if (type == "bridge_h") {
+		return bridge_h;
 	} else if (type == "water") {
 		return water;
 	} else if (type == "floor") {
 		return floor;
+	} else if (type == "wall") {
+		return wall;
 	} else {
 		return ceiling;
 	}

@@ -181,21 +181,21 @@
     <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="player.cpp" />
     <ClCompile Include="src\map\coordinate.cpp" />
     <ClCompile Include="src\map\level.cpp" />
     <ClCompile Include="src\map\room.cpp" />
     <ClCompile Include="src\map\tile.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ofApp.cpp" />
+    <ClCompile Include="src\player\player.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="player.h" />
     <ClInclude Include="src\map\coordinate.h" />
     <ClInclude Include="src\map\level.h" />
     <ClInclude Include="src\map\room.h" />
     <ClInclude Include="src\map\tile.h" />
     <ClInclude Include="src\ofApp.h" />
+    <ClInclude Include="src\player\player.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(OF_ROOT)\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">

@@ -7,6 +7,9 @@ private:
 	//Whether or not entities or the player can walk on the tile
 	bool passable;
 
+	//Whether or not the player can see the tile
+	bool visible;
+
 	//The type of tile (this determines the graphic and other values)
 	std::string type;
 

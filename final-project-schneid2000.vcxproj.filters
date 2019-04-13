@@ -19,7 +19,7 @@
     <ClCompile Include="src\map\level.cpp">
       <Filter>src\map</Filter>
     </ClCompile>
-    <ClCompile Include="player.cpp">
+    <ClCompile Include="src\player\player.cpp">
       <Filter>src\player</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,7 +50,7 @@
     <ClInclude Include="src\map\level.h">
       <Filter>src\map</Filter>
     </ClInclude>
-    <ClInclude Include="player.h">
+    <ClInclude Include="src\player\player.h">
       <Filter>src\player</Filter>
     </ClInclude>
   </ItemGroup>

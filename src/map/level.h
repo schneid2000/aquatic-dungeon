@@ -1,10 +1,13 @@
 #pragma once
 
 #include "tile.h"
+#include "room.h"
 #include "coordinate.h"
 #include <vector>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
+#include <iostream>
 
 //This represents the side lengths of the level array
 //(the amount of space the level is allowed to generate in)
@@ -17,6 +20,7 @@ private:
 	Coordinate start_tile;
 	Coordinate goal_tile;
 	Coordinate start_display_tile;
+	std::vector<Room> room_presets;
 
 	
 
@@ -49,4 +53,11 @@ public:
 	//Getter for the display window's start point
 	Coordinate get_start_display_tile();
 
+	bool is_valid_coordinate(int x, int y);
+
+	//Give the level the room presets
+	void load_room_presets();
+
+	//adds a room to the level
+	void add_random_room_randomly();
 };

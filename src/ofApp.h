@@ -2,17 +2,21 @@
 
 #include "ofMain.h"
 #include "map/level.h"
+#include "player/player.h"
 #include <iostream>
 
 static const int kDisplaySize = 7;
 
 class ofApp : public ofBaseApp{
-	ofImage bridge;
+	ofImage bridge_v;
+	ofImage bridge_h;
+	ofImage wall;
 	ofImage water;
 	ofImage ceiling;
 	ofImage floor;
 	ofImage crabman_front;
 	Level level = Level(true);
+	Player player;
 
 	public:
 		void setup();
