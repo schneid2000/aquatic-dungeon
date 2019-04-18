@@ -1,12 +1,8 @@
 #include "level.h"
 
-//The default level constructor will create a 20x20 map of normal floor tiles
+//Empty constructor
 Level::Level() {
-	/*for (int y = 0; y < kSize; y++) {
-		for (int x = 0; x < kSize; x++) {
-			map[y][x].set_passability(false);
-		}
-	}*/
+
 }
 
 //Constructor
@@ -29,23 +25,27 @@ Level::Level(bool passable) {
 	}
 }
 
-//Gets a specific map tile by the coordinate
-Tile Level::get_tile(int y, int x) {
+//Gets a specific map tile by the x and y coordinate
+Tile Level::get_tile(int x, int y) {
 	return map[y][x];
 }
 
+//Gets a specific map tile by the coordinate
 Tile Level::get_tile(Coordinate coordinate) {
-	return get_tile(coordinate.get_coordinate_y(), coordinate.get_coordinate_x());
+	return get_tile(coordinate.get_coordinate_x(), coordinate.get_coordinate_y());
 }
 
 //Sets a specific map tile by the coordinate
-void Level::set_tile(int y, int x, Tile tile) {
+void Level::set_tile(int x, int y, Tile tile) {
 	map[y][x] = tile;
 }
 
+//Returns a count of all the passable tiles in the level
 int Level::count_all_passable_tiles() {
 	int count = 0;
 
+	//Go through all the tiles
+	//If a tile is passable add it to the count
 	for (int y = 0; y < kSize; y++) {
 		for (int x = 0; x < kSize; x++) {
 			if (map[y][x].get_passability()) {
@@ -59,22 +59,27 @@ int Level::count_all_passable_tiles() {
 
 //Help with random number generation http://www.cplusplus.com/reference/cstdlib/rand/
 Coordinate Level::get_random_passable_tile() {
+	//Get a random y and x index (within the level)
 	int y = rand() % kSize;
 	int x = rand() % kSize;
 
+	//If that random tile is not passable, continue searching
 	while (!map[y][x].get_passability()) {
 		y = rand() % kSize;
 		x = rand() % kSize;
 	}
 
+	//Return the coordinate representing that tile
 	return Coordinate(x, y);
 }
 
 //Get a random ceiling tile
-Coordinate Level::get_random_void_tile() {
+Coordinate Level::get_random_impassable_tile() {
+	//Get a random x and y index (within the level)
 	int y = rand() % kSize;
 	int x = rand() % kSize;
 
+	//Continues searching if we have not reached a ceiling tile
 	while (map[y][x].get_type() == "ceiling") {
 		y = rand() % kSize;
 		x = rand() % kSize;
@@ -83,7 +88,9 @@ Coordinate Level::get_random_void_tile() {
 	return Coordinate(x, y);
 }
 
+//Get a random tile
 Coordinate Level::get_random_tile() {
+	//Get a random x and y index (within the level)
 	int y = rand() % kSize;
 	int x = rand() % kSize;
 
@@ -91,21 +98,30 @@ Coordinate Level::get_random_tile() {
 }
 
 
+//Set the player's start tile and the top left tile of the display window
 void Level::setup_start_tiles() {
-	start_tile = get_random_passable_tile_from_vector();
+	//The start tile should be any random passable tile
+	start_tile = get_random_passable_tile();
+
+	//The first display tile (since the window is 7x7 tiles, it is 3 up and 3 to the left from the center 
 	start_display_tile = Coordinate(start_tile.get_coordinate_x() - 3, start_tile.get_coordinate_y() - 3);
 }
 
+//Get the player start tile
 Coordinate Level::get_start_tile() {
 	return start_tile;
 }
 
+
+//Get the top left window display tile
 Coordinate Level::get_start_display_tile() {
 	return start_display_tile;
 }
 
+
 //Checks if the coordinate is valid on the map
 bool Level::is_valid_coordinate(int x, int y) {
+	//If the x and y indices are inside of map bounds, they are valid
 	if (0 <= x && x < kSize && 0 <= y && y < kSize) {
 		return true;
 	}
@@ -113,13 +129,15 @@ bool Level::is_valid_coordinate(int x, int y) {
 	return false;
 }
 
+//Checks if the Coordinate is valid on the map
 bool Level::is_valid_coordinate(Coordinate coordinate) {
 	return (is_valid_coordinate(coordinate.get_coordinate_x(), coordinate.get_coordinate_y()));
 }
 
+//Loads the room presets located in rooms.txt in the Presets folder
 void Level::load_room_presets() {
 	std::fstream filestream;
-	filestream.open("../bin/data/graphics/Presets/rooms.txt", std::fstream::in);
+	filestream.open(kPresetsLocation, std::fstream::in);
 	Room current_preset;
 	while (filestream >> current_preset) {
 		std::cout << "Loading rooms..." << std::endl;
@@ -137,7 +155,7 @@ void Level::add_random_room_randomly() {
 	int room_tile_index = 0;
 	for (int y = random_tile.get_coordinate_y(); y < random_tile.get_coordinate_y() + random_room.get_height(); y++) {
 		for (int x = random_tile.get_coordinate_x(); x < random_tile.get_coordinate_x() + random_room.get_width(); x++) {
-			if (is_valid_coordinate(x, y) && room_tile_index < random_room.size() && get_tile(y, x).get_type() != "floor") {
+			if (is_valid_coordinate(x, y) && room_tile_index < random_room.size() && get_tile(x, y).get_type() != "floor") {
 				map[y][x] = random_room.get_tile(room_tile_index);
 			}
 			room_tile_index++;
@@ -146,24 +164,12 @@ void Level::add_random_room_randomly() {
 }
 
 
-void Level::gather_all_passable_tiles() {
-	for (int y = 0; y < kSize; y++) {
-		for (int x = 0; x < kSize; x++) {
-			if (map[y][x].get_passability()) {
-				passable_tile_locations.push_back(Coordinate(x, y));
-			}
-		}
-	}
-}
 
 
-Coordinate Level::get_random_passable_tile_from_vector() {
-	int index = rand() % (passable_tile_locations.size());
-	return passable_tile_locations[index];
-}
+
 
 void Level::generate_random_hall() {
-	Coordinate current = get_random_void_tile();
+	Coordinate current = get_random_impassable_tile();
 	int up_right_choice = rand() % 2;
 	int opposite_choice = rand() % 2;
 	create_hall_in_direction(current, up_right_choice, opposite_choice);
@@ -202,12 +208,12 @@ void Level::create_hall_in_direction(Coordinate current_tile, bool up_or_right, 
 	int x = current_tile.get_coordinate_x();
 	int y = current_tile.get_coordinate_y();
 
-	while (is_valid_coordinate(current_tile) && get_tile(y, x).get_type() != "floor") {
+	while (is_valid_coordinate(current_tile) && get_tile(x, y).get_type() != "floor") {
 		map[y][x] = Tile(true, "floor");
-		if (is_valid_coordinate(y + y_wall_modifier, x + x_wall_modifier) && get_tile(y + y_wall_modifier, x + x_wall_modifier).get_type() != "floor") {
+		if (is_valid_coordinate(x + x_wall_modifier, y + y_wall_modifier) && get_tile(x + x_wall_modifier, y + y_wall_modifier).get_type() != "floor") {
 			map[y + y_wall_modifier][x + x_wall_modifier] = Tile(false, "wall");
 		}
-		if (is_valid_coordinate(y - y_wall_modifier, x - x_wall_modifier) && get_tile(y - y_wall_modifier, x - x_wall_modifier).get_type() != "floor") {
+		if (is_valid_coordinate(x - x_wall_modifier, y - y_wall_modifier) && get_tile(x - x_wall_modifier, y - y_wall_modifier).get_type() != "floor") {
 			map[y - y_wall_modifier][x - x_wall_modifier] = Tile(false, "wall");
 		}
 		current_tile.set_coordinate(x + x_path_modifier, y + y_path_modifier);

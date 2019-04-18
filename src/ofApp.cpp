@@ -18,7 +18,6 @@ void ofApp::setup(){
 	level.load_room_presets();
 	std::cout << "Creating the level...\n";
 	level.instantiate_level();
-	level.gather_all_passable_tiles();
 	level.setup_start_tiles();
 	player = Player(level.get_start_tile());
 }
@@ -37,7 +36,7 @@ void ofApp::draw(){
 	for (int y = player.get_current_tile().get_coordinate_y() - 3; y < player.get_current_tile().get_coordinate_y() - 3 + kDisplaySize; y++) {
 		for (int x = player.get_current_tile().get_coordinate_x() - 3; x < player.get_current_tile().get_coordinate_x() - 3 + kDisplaySize; x++) {
 			if ((x >= 0 && x < kSize) && (y >= 0 && y < kSize)) {
-				ofImage image = get_image_from_type(level.get_tile(y, x).get_type());
+				ofImage image = get_image_from_type(level.get_tile(x, y).get_type());
 				image.draw(pixel_x, pixel_y);
 				if (x == player.get_player_x() && y == player.get_player_y()) {
 					ofImage player_stance = get_image_from_direction(player.get_turn_direction());
@@ -58,22 +57,22 @@ void ofApp::keyPressed(int key){
 	int y = player.get_player_y();
 	if (key == 'w') {
 		player.set_turn_direction("up");
-		if (level.is_valid_coordinate(x, y - 1) && level.get_tile(y - 1, x).get_passability()) {
+		if (level.is_valid_coordinate(x, y - 1) && level.get_tile(x, y - 1).get_passability()) {
 			player.set_current_tile(x, y - 1);
 		}
 	} else if (key == 'a') {
 		player.set_turn_direction("left");
-		if (level.is_valid_coordinate(x - 1, y) && level.get_tile(y, x - 1).get_passability()) {
+		if (level.is_valid_coordinate(x - 1, y) && level.get_tile(x - 1, y).get_passability()) {
 			player.set_current_tile(x - 1, y);
 		}
 	} else if (key == 's') {
 		player.set_turn_direction("down");
-		if (level.is_valid_coordinate(x, y + 1) && level.get_tile(y + 1, x).get_passability()) {
+		if (level.is_valid_coordinate(x, y + 1) && level.get_tile(x, y + 1).get_passability()) {
 			player.set_current_tile(x, y + 1);
 		}
 	} else if (key == 'd') {
 		player.set_turn_direction("right");
-		if (level.is_valid_coordinate(x + 1, y) && level.get_tile(y, x + 1).get_passability()) {
+		if (level.is_valid_coordinate(x + 1, y) && level.get_tile(x + 1, y).get_passability()) {
 			player.set_current_tile(x + 1, y);
 		}
 	}

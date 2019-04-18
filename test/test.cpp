@@ -51,3 +51,48 @@ TEST_CASE("Setting a new passability on a tile") {
 
 // Room tests
 
+TEST_CASE("Room constructor works properly") {
+	Room room = Room(7, 5, "HHHHHH---HH---HH---HH---HH---HHHHHH");
+	REQUIRE(room.get_height() == 7);
+	REQUIRE(room.get_width() == 5);
+	REQUIRE(room.get_tile(0).get_type() == "wall");
+}
+
+TEST_CASE("Gets size of room correctly") {
+	Room room = Room(7, 5, "HHHHHH---HH---HH---HH---HH---HHHHHH");
+	REQUIRE(room.size() == 35);
+}
+
+
+// Level tests
+
+TEST_CASE("Constructor works properly given true") {
+	Level level = Level(true);
+	REQUIRE(level.get_tile(0, 0).get_type() == "floor");
+	REQUIRE(level.get_tile(0, 0).get_passability());
+}
+
+TEST_CASE("Constructor works properly given false") {
+	Level level = Level(false);
+	REQUIRE(level.get_tile(0, 0).get_type() == "ceiling");
+	REQUIRE(!level.get_tile(0, 0).get_passability());
+}
+
+TEST_CASE("Setting a specific tile in a Level") {
+	Level level = Level(false);
+	level.set_tile(1, 0, Tile(true, "floor"));
+	REQUIRE(level.get_tile(1, 0).get_type() == "floor");
+}
+
+TEST_CASE("Getting a specific tile with a Coordinate") {
+	Level level = Level(false);
+	level.set_tile(1, 0, Tile(true, "floor"));
+	REQUIRE(level.get_tile(Coordinate(1, 0)).get_type() == "floor");
+}
+
+TEST_CASE("Getting a count of all passable tiles in a Level") {
+	Level level = Level(false);
+	level.set_tile(1, 0, Tile(true, "floor"));
+	level.set_tile(0, 1, Tile(true, "floor"));
+	REQUIRE(level.count_all_passable_tiles() == 2);
+}

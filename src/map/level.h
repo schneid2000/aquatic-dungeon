@@ -8,11 +8,13 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 //This represents the side lengths of the level array
 //(the amount of space the level is allowed to generate in)
 static const int kSize = 30;
 static const float kPercentPassable = 0.5f;
+static const std::string kPresetsLocation = "../bin/data/graphics/Presets/rooms.txt";
 
 class Level {
 private:
@@ -22,7 +24,6 @@ private:
 	Coordinate goal_tile;
 	Coordinate start_display_tile;
 	std::vector<Room> room_presets;
-	std::vector<Coordinate> passable_tile_locations;
 
 	
 
@@ -35,11 +36,11 @@ public:
 	Level(bool passable);
 
 	//Getter for specific tile
-	Tile get_tile(int y, int x);
+	Tile get_tile(int x, int y);
 	Tile get_tile(Coordinate coordinate);
 
 	//Setter for specific tile
-	void set_tile(int y, int x, Tile tile);
+	void set_tile(int x, int y, Tile tile);
 
 	//Returns a number of all the passable tiles
 	int count_all_passable_tiles();
@@ -48,9 +49,9 @@ public:
 	Coordinate get_random_passable_tile();
 
 	//Returns a coordinate of a random impassable tile
-	Coordinate get_random_void_tile();
+	Coordinate get_random_impassable_tile();
 
-	//Returns a coordinate of a random tile
+	//Returns a coordinate of any random tile
 	Coordinate get_random_tile();
 
 	//Sets the start tile and the start display tile
@@ -70,12 +71,6 @@ public:
 
 	//adds a room to the level
 	void add_random_room_randomly();
-
-	//Instantiate passable_tiles vector
-	void gather_all_passable_tiles();
-
-	//Uses the passable tile location vector to determine a random location
-	Coordinate get_random_passable_tile_from_vector();
 
 	//Makes a random hallway
 	void generate_random_hall();
