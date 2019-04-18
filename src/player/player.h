@@ -1,11 +1,12 @@
 #pragma once
 
 #include "../map/coordinate.h"
+#include <string>
 
 class Player {
 private:
 	Coordinate current_tile;
-
+	std::string turn_direction;
 
 public:
 	//Empty constructor
@@ -22,5 +23,9 @@ public:
 
 	int get_player_x();
 	int get_player_y();
+
+	//Getter and setter for player turn direction
+	void set_turn_direction(std::string new_direction);
+	std::string get_turn_direction();
 
 };

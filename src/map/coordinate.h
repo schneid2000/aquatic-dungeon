@@ -7,7 +7,7 @@ private:
 	int y;
 
 public: 
-	//Creates a default point at 0, 0
+	//Empty constructor
 	Coordinate();
 
 	//Constructor that takes in the values

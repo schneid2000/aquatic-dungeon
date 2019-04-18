@@ -100,7 +100,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>D:\Coding Software\entt-master\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\schne\entt\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <LanguageStandard>stdcpp14</LanguageStandard>
@@ -181,6 +181,7 @@
     <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\entities\entity.cpp" />
     <ClCompile Include="src\map\coordinate.cpp" />
     <ClCompile Include="src\map\level.cpp" />
     <ClCompile Include="src\map\room.cpp" />
@@ -188,6 +189,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ofApp.cpp" />
     <ClCompile Include="src\player\player.cpp" />
+    <ClCompile Include="test\test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\map\coordinate.h" />
@@ -196,6 +198,7 @@
     <ClInclude Include="src\map\tile.h" />
     <ClInclude Include="src\ofApp.h" />
     <ClInclude Include="src\player\player.h" />
+    <ClInclude Include="test\catch.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(OF_ROOT)\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">

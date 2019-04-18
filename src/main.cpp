@@ -1,10 +1,11 @@
-
 #include "ofMain.h"
 #include "ofApp.h"
 
 
 //========================================================================
 int main( ){
+	entt::DefaultRegistry registry;
+	auto entity = registry.create();
 	ofSetupOpenGL(896,896,OF_WINDOW);			// <-------- setup the GL context
 
 	// this kicks off the running of my app

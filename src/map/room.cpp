@@ -42,26 +42,30 @@ int Room::size() {
 	return room_tiles.size();
 }
 
-
+//Help with changing string input to ints https://stackoverflow.com/questions/5029840/convert-char-to-int-in-c-and-c
 std::istream& operator>>(std::istream &input, Room &room) {
 	std::string line;
+	std::string room_string;
 	std::getline(input, line);
-	std::cout << "Here" << std::endl;
-	std::cout << line << std::endl;
+
+
 	if (line != "#drf1.0") {
 		return input;
 	}
-	std::cout << "Here" << std::endl;
+
 	int new_height;
 	int new_width;
 
 	std::getline(input, line);
-	new_height = (int)line[0];
+	new_height = (int)line[0] - '0';
 	std::getline(input, line);
-	new_width = (int)line[0];
-	std::getline(input, line);
-	room = Room(new_height, new_width, line);
-
+	new_width = (int)line[0] - '0';
+	for (int i = 0; i < new_height; i++) {
+		std::getline(input, line);
+		room_string += line;
+	}
+	room = Room(new_height, new_width, room_string);
+	
 	return input;
 }
 

@@ -2,6 +2,8 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	srand(time(NULL));
+	std::cout << "Loading graphics...\n";
 	bridge_v.load("graphics/Tiles/bridge_vertical.png");
 	bridge_h.load("graphics/Tiles/bridge_horizontal.png");
 	water.load("graphics/Tiles/water.png");
@@ -9,11 +11,16 @@ void ofApp::setup(){
 	ceiling.load("graphics/Tiles/ceiling.png");
 	floor.load("graphics/Tiles/floor.png"); 
 	wall.load("graphics/Tiles/wall.png");
-	level.setup_start_tiles();
+	player_front.load("graphics/Sprites/Player/cedar_front.png");
+	player_left.load("graphics/Sprites/Player/cedar_left.png");
+	player_right.load("graphics/Sprites/Player/cedar_right.png");
+	player_back.load("graphics/Sprites/Player/cedar_back.png");
 	level.load_room_presets();
-	level.add_random_room_randomly();
+	std::cout << "Creating the level...\n";
+	level.instantiate_level();
+	level.gather_all_passable_tiles();
+	level.setup_start_tiles();
 	player = Player(level.get_start_tile());
-	srand(time(NULL));
 }
 
 //--------------------------------------------------------------
@@ -33,7 +40,8 @@ void ofApp::draw(){
 				ofImage image = get_image_from_type(level.get_tile(y, x).get_type());
 				image.draw(pixel_x, pixel_y);
 				if (x == player.get_player_x() && y == player.get_player_y()) {
-					crabman_front.draw(pixel_x, pixel_y);
+					ofImage player_stance = get_image_from_direction(player.get_turn_direction());
+					player_stance.draw(pixel_x, pixel_y);
 				}
 				
 			}
@@ -48,14 +56,26 @@ void ofApp::draw(){
 void ofApp::keyPressed(int key){
 	int x = player.get_player_x();
 	int y = player.get_player_y();
-	if (key == 'w' && level.is_valid_coordinate(x, y - 1) && level.get_tile(x, y - 1).get_passability()) {
-		player.set_current_tile(x, y - 1);
-	} else if (key == 'a' && level.is_valid_coordinate(x - 1, y) && level.get_tile(x - 1, y).get_passability()) {
-		player.set_current_tile(x - 1, y);
-	} else if (key == 's' && level.is_valid_coordinate(x, y + 1) && level.get_tile(x, y + 1).get_passability()) {
-		player.set_current_tile(x, y + 1);
-	} else if (key == 'd' && level.is_valid_coordinate(x + 1, y) && level.get_tile(x + 1, y).get_passability()) {
-		player.set_current_tile(x + 1, y);
+	if (key == 'w') {
+		player.set_turn_direction("up");
+		if (level.is_valid_coordinate(x, y - 1) && level.get_tile(y - 1, x).get_passability()) {
+			player.set_current_tile(x, y - 1);
+		}
+	} else if (key == 'a') {
+		player.set_turn_direction("left");
+		if (level.is_valid_coordinate(x - 1, y) && level.get_tile(y, x - 1).get_passability()) {
+			player.set_current_tile(x - 1, y);
+		}
+	} else if (key == 's') {
+		player.set_turn_direction("down");
+		if (level.is_valid_coordinate(x, y + 1) && level.get_tile(y + 1, x).get_passability()) {
+			player.set_current_tile(x, y + 1);
+		}
+	} else if (key == 'd') {
+		player.set_turn_direction("right");
+		if (level.is_valid_coordinate(x + 1, y) && level.get_tile(y, x + 1).get_passability()) {
+			player.set_current_tile(x + 1, y);
+		}
 	}
 }
 
@@ -122,5 +142,17 @@ ofImage ofApp::get_image_from_type(std::string type) {
 		return wall;
 	} else {
 		return ceiling;
+	}
+}
+
+ofImage ofApp::get_image_from_direction(std::string direction) {
+	if (direction == "up") {
+		return player_back;
+	} else if (direction == "left") {
+		return player_left;
+	} else if (direction == "right") {
+		return player_right;
+	} else {
+		return player_front;
 	}
 }

@@ -1,7 +1,7 @@
 #include "coordinate.h"
 
 Coordinate::Coordinate() {
-	Coordinate(0, 0);
+	
 }
 
 Coordinate::Coordinate(int new_x, int new_y) {

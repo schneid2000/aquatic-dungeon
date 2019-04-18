@@ -22,6 +22,12 @@
     <ClCompile Include="src\player\player.cpp">
       <Filter>src\player</Filter>
     </ClCompile>
+    <ClCompile Include="src\entities\entity.cpp">
+      <Filter>src\entities</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -32,6 +38,12 @@
     </Filter>
     <Filter Include="src\player">
       <UniqueIdentifier>{063155be-1695-4d62-bed7-3f5a4de41e3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\entities">
+      <UniqueIdentifier>{ea4fc8e3-0fb0-4dd5-a70a-ebc55dbca8c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{e500534e-33f5-43e9-8368-878e2b827ed2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -52,6 +64,9 @@
     </ClInclude>
     <ClInclude Include="src\player\player.h">
       <Filter>src\player</Filter>
+    </ClInclude>
+    <ClInclude Include="test\catch.hpp">
+      <Filter>test</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

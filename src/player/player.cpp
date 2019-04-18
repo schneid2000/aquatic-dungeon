@@ -27,3 +27,13 @@ int Player::get_player_x() {
 int Player::get_player_y() {
 	return current_tile.get_coordinate_y();
 }
+
+//Gets the direction the player turned in
+std::string Player::get_turn_direction() {
+	return turn_direction;
+}
+
+//Sets the direction the player turned in
+void Player::set_turn_direction(std::string new_direction) {
+	turn_direction = new_direction;
+}

@@ -3,7 +3,9 @@
 #include "ofMain.h"
 #include "map/level.h"
 #include "player/player.h"
+#include "entities/entity.h"
 #include <iostream>
+#include <entt/entt.hpp>
 
 static const int kDisplaySize = 7;
 
@@ -15,7 +17,11 @@ class ofApp : public ofBaseApp{
 	ofImage ceiling;
 	ofImage floor;
 	ofImage crabman_front;
-	Level level = Level(true);
+	ofImage player_front;
+	ofImage player_left;
+	ofImage player_right;
+	ofImage player_back;
+	Level level = Level(false);
 	Player player;
 
 	public:
@@ -37,5 +43,8 @@ class ofApp : public ofBaseApp{
 
 		//Gets the image from a tile's type
 		ofImage get_image_from_type(std::string type);
+
+		//Gets the image to use based on what direction the player turns in
+		ofImage get_image_from_direction(std::string direction);
 
 };
