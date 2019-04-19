@@ -4,8 +4,10 @@ Player::Player() {
 
 }
 
-Player::Player(Coordinate start_tile) {
+Player::Player(Coordinate start_tile, int start_health) {
 	current_tile = start_tile;
+	total_health = start_health;
+	health = start_health;
 }
 
 //Getter for the current tile
@@ -26,6 +28,18 @@ int Player::get_player_x() {
 //Get the player's y point
 int Player::get_player_y() {
 	return current_tile.get_coordinate_y();
+}
+
+int Player::get_health() {
+	return health;
+}
+
+int Player::get_total_health() {
+	return total_health;
+}
+
+void Player::change_health(int value) {
+	health += value;
 }
 
 //Gets the direction the player turned in

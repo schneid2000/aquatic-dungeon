@@ -15,11 +15,13 @@ void ofApp::setup(){
 	player_left.load("graphics/Sprites/Player/cedar_left.png");
 	player_right.load("graphics/Sprites/Player/cedar_right.png");
 	player_back.load("graphics/Sprites/Player/cedar_back.png");
+	health_bar.load("graphics/UI/health_bar.png");
+	health_strip.load("graphics/UI/health_slice.png");
 	level.load_room_presets();
 	std::cout << "Creating the level...\n";
 	level.instantiate_level();
 	level.setup_start_tiles();
-	player = Player(level.get_start_tile());
+	player = Player(level.get_start_tile(), 100);
 }
 
 //--------------------------------------------------------------
@@ -49,6 +51,16 @@ void ofApp::draw(){
 		pixel_x = 0;
 		pixel_y += 128;
 	}
+
+	float health_portion = (float)((float)player.get_health() / (float)player.get_total_health());
+	int num_health_strips = health_portion * 29;
+	for (int x = 28; x < 28 + (num_health_strips * 6); x += 6) {
+		health_strip.draw(x, 31);
+	}
+
+
+	health_bar.draw(16, 0);
+	
 }
 
 //--------------------------------------------------------------
@@ -135,7 +147,8 @@ ofImage ofApp::get_image_from_type(std::string type) {
 		return bridge_h;
 	} else if (type == "water") {
 		return water;
-	} else if (type == "floor") {
+	} else if (type == "floor" || type == "boss_spawn" 
+		|| type == "boss_gateway" || type == "no_spawn_floor") {
 		return floor;
 	} else if (type == "wall") {
 		return wall;

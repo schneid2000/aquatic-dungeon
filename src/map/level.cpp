@@ -64,7 +64,7 @@ Coordinate Level::get_random_passable_tile() {
 	int x = rand() % kSize;
 
 	//If that random tile is not passable, continue searching
-	while (!map[y][x].get_passability()) {
+	while (!map[y][x].get_passability() || map[y][x].get_type() != "floor") {
 		y = rand() % kSize;
 		x = rand() % kSize;
 	}
@@ -141,7 +141,11 @@ void Level::load_room_presets() {
 	Room current_preset;
 	while (filestream >> current_preset) {
 		std::cout << "Loading rooms..." << std::endl;
-		room_presets.push_back(current_preset);
+		if (current_preset.has_boss()) {
+			boss_presets.push_back(current_preset);
+		} else {
+			room_presets.push_back(current_preset);
+		}
 	}
 }
 
@@ -158,6 +162,31 @@ void Level::add_random_room_randomly() {
 			if (is_valid_coordinate(x, y) && room_tile_index < random_room.size() && get_tile(x, y).get_type() != "floor") {
 				map[y][x] = random_room.get_tile(room_tile_index);
 			}
+			room_tile_index++;
+		}
+	}
+}
+
+void Level::add_boss_room() {
+	if (boss_presets.size() == 0) {
+		return;
+	}
+
+	int index = rand() % (boss_presets.size());
+	Coordinate random_tile = get_random_tile();
+	Room boss_room = boss_presets[index];
+	int tile_x = random_tile.get_coordinate_x();
+	int tile_y = random_tile.get_coordinate_y();
+	while (!is_valid_coordinate(tile_x + boss_room.get_width(), tile_y + boss_room.get_height())) {
+		random_tile = get_random_tile();
+		tile_x = random_tile.get_coordinate_x();
+		tile_y = random_tile.get_coordinate_y();
+	}
+	
+	int room_tile_index = 0;
+	for (int y = random_tile.get_coordinate_y(); y < random_tile.get_coordinate_y() + boss_room.get_height(); y++) {
+		for (int x = random_tile.get_coordinate_x(); x < random_tile.get_coordinate_x() + boss_room.get_width(); x++) {
+			map[y][x] = boss_room.get_tile(room_tile_index);
 			room_tile_index++;
 		}
 	}
@@ -239,10 +268,18 @@ float Level::percent_passable_tiles() {
 	return (float) (((float) floor_tiles) / (float) (kSize * kSize));
 }
 
+//Generate the level by adding rooms, hallways, and the boss room
 void Level::instantiate_level() {
 	while (percent_passable_tiles() < kPercentPassable) {
 		add_random_room_randomly();
 		add_random_room_randomly();
 		generate_random_hall();
 	}
+	add_boss_room();
+}
+
+
+//Checks if there is a path from the spawn to the boss room
+bool Level::path_to_gateway() {
+	return true;
 }

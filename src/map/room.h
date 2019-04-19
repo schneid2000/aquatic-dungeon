@@ -13,6 +13,7 @@ private:
 	//The height and width (for use in generation of the room)
 	int height;
 	int width;
+	bool boss;
 
 public:
 	//Empty constructor
@@ -24,6 +25,10 @@ public:
 	//Getter for the height and width
 	int get_height();
 	int get_width();
+	bool has_boss();
+
+	//Setter for the boss value
+	void set_boss(bool value);
 
 	//Gets the total area of the room
 	int size();

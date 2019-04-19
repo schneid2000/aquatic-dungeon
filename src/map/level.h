@@ -24,6 +24,7 @@ private:
 	Coordinate goal_tile;
 	Coordinate start_display_tile;
 	std::vector<Room> room_presets;
+	std::vector<Room> boss_presets;
 
 	
 
@@ -75,10 +76,16 @@ public:
 	//Makes a random hallway
 	void generate_random_hall();
 
+	//Places a boss room in the level
+	void add_boss_room();
+
+
 	//Creates a hall in a specified direction
 	void create_hall_in_direction(Coordinate current_tile, bool up_or_right, bool opposite);
 
 	float percent_passable_tiles();
 
 	void instantiate_level();
+
+	bool path_to_gateway();
 };

@@ -11,6 +11,7 @@ Room::Room(int new_height, int new_width, std::string tiles) {
 	//Assign the height and width
 	height = new_height;
 	width = new_width;
+	boss = false;
 
 	//Go through the string of characters and convert them to the proper tiles
 	for (int i = 0; i < tiles.size(); i++) {
@@ -24,6 +25,12 @@ Room::Room(int new_height, int new_width, std::string tiles) {
 			room_tiles.push_back(Tile(true, "bridge_v"));
 		} else if (tiles[i] == 'x') {
 			room_tiles.push_back(Tile(true, "bridge_h"));
+		} else if (tiles[i] == 'B') {
+			room_tiles.push_back(Tile(true, "boss_spawn"));
+		} else if (tiles[i] == 'G') {
+			room_tiles.push_back(Tile(true, "boss_gateway"));
+		} else if (tiles[i] == '_') {
+			room_tiles.push_back(Tile(true, "no_spawn_floor"));
 		} else {
 			//Any ceiling or otherwise unrecognized tile should become a ceiling tile
 			room_tiles.push_back(Tile(false, "ceiling"));
@@ -41,6 +48,16 @@ int Room::get_width() {
 	return width;
 }
 
+
+bool Room::has_boss() {
+	return boss;
+}
+
+
+void Room::set_boss(bool value) {
+	boss = value;
+}
+
 //Getter for a particular tile from the tile vector
 Tile Room::get_tile(int index) {
 	//Only attempt to get a tile if the index is valid
@@ -48,6 +65,7 @@ Tile Room::get_tile(int index) {
 		return room_tiles[index];
 	}
 }
+
 
 //Get the size of the room
 int Room::size() {
@@ -59,13 +77,18 @@ int Room::size() {
 std::istream& operator>>(std::istream &input, Room &room) {
 	std::string line;
 	std::string room_string;
+	bool is_boss_room = false;
 
 	//Take in a line
 	std::getline(input, line);
 
 	//Do not continue if the file format is not included
-	if (line != "#drf1.0") {
+	if (line != "#drf1.0" && line != "#drf1.0b") {
 		return input;
+	}
+
+	if (line == "#drf1.0b") {
+		is_boss_room = true;
 	}
 
 	int new_height;
@@ -87,6 +110,9 @@ std::istream& operator>>(std::istream &input, Room &room) {
 	
 	//Create a room with these values
 	room = Room(new_height, new_width, room_string);
+	if (is_boss_room) {
+		room.set_boss(true);
+	}
 	
 	return input;
 }

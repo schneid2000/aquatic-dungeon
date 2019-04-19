@@ -42,3 +42,57 @@
 	-The map can now be viewed
 	-A random possible spawn point is chosen and the surrounding area is shown
 	-If a square is not part of the map, no tile is shown
+
+
+
+
+## Week 1
+
+-Map Mechanics
+	-I completed setting up the Level class and its components; Coordinate, Room, and Tile.
+	-I overrode the input stream for the room class, so I can input the rooms as presets from a text file.
+	-I fixed some developer-friendly issues, like functions that took y, then x values, when x, y values would be more clear.
+
+-Level Class Summary
+	-The Level class contains most of the information about the environment the player moves around in.
+	-I removed some unused code from the class.
+	-I added several generation methods to create a random level:
+		1. I created a method that randomly adds a room based on the presets from the presets file
+		2. I created a method that generates a hallway in a random direction, starting at an impassable space.
+		3. I added boss rooms, which are tagged differently in the room preset file.
+		4. The boss room overrides any tiles it is placed on (normal rooms do not override floor tiles)
+		5. The boss room implements several new tiles, which will be used for the path methods later
+
+-Player Mechanics
+	-Added movement to the player, along with several different graphics to represent a player facing each direction.
+	-Gave the protagonist, Cedar, an avatar! (He is no longer just crabman)
+	-Movement uses WASD, as in most games
+	-The player is locked in the center of the screen, and the visible area around them changes when they move.
+	-The player also has a health bar, visible in the top left corner of the screen.
+	-The health bar is filled proportionally based on their health as a percentage of their initial total health. 
+
+-EnTT Progress
+	-I figured out that the project does not like C++17 very much, but a C++14 version of EnTT was available.
+	-After some research, I figured out how to get the c++14 version from github.
+	-I tried some very basic functions of the library, and it appears to be functional.
+
+-Testing
+	-I started adding tests for the fundamental map classes, starting out with tile, room, and coordinate.
+
+-Obstacles
+	-In placing the player's health bar, I used a lot of magic numbers to get the placement right.
+	-Some methods, like hallway generation, required necessary modifiers that made lines of code very long. 
+	-I'm having a bit of trouble with the master branch of the project. I'm able to push to another branch but not master.
+	-Very often I mistype a function without adding parentheses, which frequently was the cause of error.
+	-I had some code incorrect, where I passed values of x,y to y,x functions, but there was little recognizable difference when fixed.
+	-The last key part of level generation, ensuring a path from spawn to end, is likely the hardest part. 
+		1. I'm mostly set on how I want to detect if a path exists, however I am uncertain of how to actually create one if none exist.
+		2. It will likely detect a path by travelling along adjacent passable tiles, trying to reach a special 'gateway' tile
+	-ofApp is quite cluttered, mostly with loading the graphics, but I may need to try to condense some functionality.
+
+-Progress
+	-A player can walk around a randomly generated map
+	-Rooms can be created in and pulled from a text file
+	-The player has a health bar that changes based on health
+
+

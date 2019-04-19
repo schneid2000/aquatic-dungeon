@@ -21,8 +21,10 @@ class ofApp : public ofBaseApp{
 	ofImage player_left;
 	ofImage player_right;
 	ofImage player_back;
+	ofImage health_bar;
+	ofImage health_strip;
 	Level level = Level(false);
-	Player player;
+	Player player = Player();
 
 	public:
 		void setup();
