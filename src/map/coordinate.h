@@ -21,4 +21,5 @@ public:
 	void set_coordinate_x(int new_x);
 	void set_coordinate_y(int new_y);
 	void set_coordinate(int new_x, int new_y);
+
 };

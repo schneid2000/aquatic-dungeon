@@ -4,10 +4,11 @@ Player::Player() {
 
 }
 
-Player::Player(Coordinate start_tile, int start_health) {
+Player::Player(Coordinate start_tile, int start_health, int start_strength) {
 	current_tile = start_tile;
 	total_health = start_health;
 	health = start_health;
+	strength = start_strength;
 }
 
 //Getter for the current tile
@@ -36,6 +37,10 @@ int Player::get_health() {
 
 int Player::get_total_health() {
 	return total_health;
+}
+
+int Player::get_strength() {
+	return strength;
 }
 
 void Player::change_health(int value) {

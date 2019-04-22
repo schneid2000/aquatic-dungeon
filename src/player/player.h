@@ -11,12 +11,14 @@ private:
 	int health;
 	int total_health;
 
+	int strength;
+
 public:
 	//Empty constructor
 	Player();
 
 	//Initial constructor
-	Player(Coordinate start_tile, int start_health);
+	Player(Coordinate start_tile, int start_health, int start_strength);
 
 	//Getter for the current tile
 	Coordinate get_current_tile();
@@ -29,6 +31,8 @@ public:
 
 	int get_health();
 	int get_total_health();
+
+	int get_strength();
 
 	void change_health(int value);
 

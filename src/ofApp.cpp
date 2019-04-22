@@ -23,6 +23,8 @@ void ofApp::setup(){
 	health_bar.load("graphics/UI/health_bar.png");
 	health_strip.load("graphics/UI/health_slice.png");
 	combat_tile.load("graphics/UI/combat_tile.png");
+	enemy_health_bar.load("graphics/UI/enemy_health_bar.png");
+	enemy_health_strip.load("graphics/UI/enemy_health_slice.png");
 
 	//Enemy graphics
 	crabman_front.load("graphics/Sprites/Crabman/crabman_front.png");
@@ -41,13 +43,19 @@ void ofApp::setup(){
 	level.load_room_presets();
 	std::cout << "Creating the level...\n";
 	level.instantiate_level();
-	player = Player(level.get_start_tile(), 100);
+	player = Player(level.get_start_tile(), 100, 10);
 	create_entities();
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-
+	auto stats = registry.view<Enemy>();
+	for (auto entity : stats) {
+		auto &opponent = stats.get(entity);
+		if (opponent.health <= 0) {
+			registry.destroy(entity);
+		}
+	}
 }
 
 //--------------------------------------------------------------
@@ -98,6 +106,36 @@ void ofApp::draw(){
 
 	//UI Display
 
+	pixel_x = 0;
+	pixel_y = 0;
+	//Enemy health display
+	for (int y = player.get_player_y() - 3; y < player.get_player_y() - 3 + kDisplaySize; y++) {
+		for (int x = player.get_player_x() - 3; x < player.get_player_x() - 3 + kDisplaySize; x++) {
+			for (auto entity : location) {
+				auto &loc = location.get(entity);
+				if (loc.current_tile.get_coordinate_x() == x && loc.current_tile.get_coordinate_y() == y) {
+					if (registry.has<Enemy>(entity)) {
+						auto &stats = enemies.get(entity);
+
+						if (stats.health != stats.total_health) {
+							float enemy_health_portion = (float)((float)stats.health / (float)stats.total_health);
+							int num_enemy_health_strips = enemy_health_portion * 15;
+							for (int sub_x = pixel_x; sub_x < num_enemy_health_strips * 8 + pixel_x; sub_x += 8) {
+								enemy_health_strip.draw(sub_x, pixel_y - 32);
+							}
+
+							enemy_health_bar.draw(pixel_x, pixel_y - 88);
+						}
+					}
+				}
+			}
+
+
+			pixel_x += 128;
+		}
+		pixel_x = 0;
+		pixel_y += 128;
+	}
 
 	//Calculates portion of health bar to show, then displays health overlayed by health bar
 	float health_portion = (float)((float)player.get_health() / (float)player.get_total_health());
@@ -116,25 +154,25 @@ void ofApp::keyPressed(int key){
 	int y = player.get_player_y();
 	if (key == 'w') {
 		player.set_turn_direction("up");
-		if (level.is_valid_coordinate(x, y - 1) && level.get_tile(x, y - 1).get_passability() && !is_enemy_at_position(x, y - 1)) {
+		if (level.is_valid_coordinate(x, y - 1) && level.get_tile(x, y - 1).get_passability() && !is_enemy_at_position(x, y - 1) && !combat) {
 			player.set_current_tile(x, y - 1);
 			enemies_action();
 		}
 	} else if (key == 'a') {
 		player.set_turn_direction("left");
-		if (level.is_valid_coordinate(x - 1, y) && level.get_tile(x - 1, y).get_passability() && !is_enemy_at_position(x - 1, y)) {
+		if (level.is_valid_coordinate(x - 1, y) && level.get_tile(x - 1, y).get_passability() && !is_enemy_at_position(x - 1, y) && !combat) {
 			player.set_current_tile(x - 1, y);
 			enemies_action();
 		}
 	} else if (key == 's') {
 		player.set_turn_direction("down");
-		if (level.is_valid_coordinate(x, y + 1) && level.get_tile(x, y + 1).get_passability() && !is_enemy_at_position(x, y + 1)) {
+		if (level.is_valid_coordinate(x, y + 1) && level.get_tile(x, y + 1).get_passability() && !is_enemy_at_position(x, y + 1) && !combat) {
 			player.set_current_tile(x, y + 1);
 			enemies_action();
 		}
 	} else if (key == 'd') {
 		player.set_turn_direction("right");
-		if (level.is_valid_coordinate(x + 1, y) && level.get_tile(x + 1, y).get_passability() && !is_enemy_at_position(x + 1, y)) {
+		if (level.is_valid_coordinate(x + 1, y) && level.get_tile(x + 1, y).get_passability() && !is_enemy_at_position(x + 1, y) && !combat) {
 			player.set_current_tile(x + 1, y);
 			enemies_action();
 		}
@@ -164,8 +202,9 @@ void ofApp::mousePressed(int x, int y, int button){
 		combat = false;
 	}
 
-	if (button == 0) {
-		std::cout << x << "," << y << std::endl;
+	if (button == 0 && combat) {
+		attack_enemy_at_tile(get_coordinate_from_pixel(x, y));
+		enemies_action();
 	}
 }
 
@@ -278,13 +317,11 @@ void ofApp::create_entities() {
 		registry.assign<Location>(entity, level.get_random_passable_tile());
 		int type = rand() % kEnemyTypes;
 		if (type == 0) {
-			registry.assign<Enemy>(entity, 100, 20, "Crabman", "front");
-		}
-		else if (type == 1) {
-			registry.assign<Enemy>(entity, 40, 10, "Octopus", "front");
-		}
-		else if (type == 2) {
-			registry.assign<Enemy>(entity, 20, 10, "Eel", "front");
+			registry.assign<Enemy>(entity, 100, 100, 20, "Crabman", "front");
+		} else if (type == 1) {
+			registry.assign<Enemy>(entity, 40, 40, 10, "Octopus", "front");
+		} else if (type == 2) {
+			registry.assign<Enemy>(entity, 20, 20, 10, "Eel", "front");
 		}
 	}
 }
@@ -381,5 +418,30 @@ std::string ofApp::determine_direction_relatively(Coordinate start, Coordinate e
 		return "up";
 	} else {
 		return "down";
+	}
+}
+
+
+Coordinate ofApp::get_coordinate_from_pixel(int pixel_x, int pixel_y) {
+	int x = pixel_x / 128;
+	int y = pixel_y / 128;
+	x += (player.get_player_x() - 3);
+	y += (player.get_player_y() - 3);
+	std::cout << x << "," << y << std::endl;
+
+	return Coordinate(x, y);
+}
+
+void ofApp::attack_enemy_at_tile(Coordinate target) {
+	auto locations = registry.view<Location>();
+	auto stats = registry.view<Enemy>();
+	for (auto entity : locations) {
+		if (registry.has<Enemy>(entity)) {
+			auto &loc = locations.get(entity);
+			if (target.get_coordinate_x() == loc.current_tile.get_coordinate_x() && target.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
+				auto &opponent = stats.get(entity);
+				opponent.health = opponent.health - player.get_strength();
+			}
+		}
 	}
 }

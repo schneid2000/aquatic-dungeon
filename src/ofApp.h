@@ -25,6 +25,8 @@ class ofApp : public ofBaseApp{
 	ofImage health_bar;
 	ofImage health_strip;
 	ofImage combat_tile;
+	ofImage enemy_health_bar;
+	ofImage enemy_health_strip;
 	ofImage crabman_front;
 	ofImage crabman_left;
 	ofImage crabman_right;
@@ -84,4 +86,8 @@ class ofApp : public ofBaseApp{
 		Coordinate move_enemy_randomly(int current_x, int current_y);
 		//This function is intended for one-step movement
 		std::string determine_direction_relatively(Coordinate start, Coordinate end);
+
+		Coordinate get_coordinate_from_pixel(int pixel_x, int pixel_y);
+
+		void attack_enemy_at_tile(Coordinate target);
 };

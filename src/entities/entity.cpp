@@ -10,6 +10,7 @@ struct Location {
 
 struct Enemy {
 	int health;
+	int total_health;
 	int strength;
 	std::string name;
 	std::string direction;
