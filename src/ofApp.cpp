@@ -22,6 +22,7 @@ void ofApp::setup(){
 	//UI graphics
 	health_bar.load("graphics/UI/health_bar.png");
 	health_strip.load("graphics/UI/health_slice.png");
+	combat_tile.load("graphics/UI/combat_tile.png");
 
 	//Enemy graphics
 	crabman_front.load("graphics/Sprites/Crabman/crabman_front.png");
@@ -58,11 +59,15 @@ void ofApp::draw(){
 	auto enemies = registry.view<Enemy>();
 
 	//Tile display
-	for (int y = player.get_current_tile().get_coordinate_y() - 3; y < player.get_current_tile().get_coordinate_y() - 3 + kDisplaySize; y++) {
-		for (int x = player.get_current_tile().get_coordinate_x() - 3; x < player.get_current_tile().get_coordinate_x() - 3 + kDisplaySize; x++) {
+	for (int y = player.get_player_y() - 3; y < player.get_player_y() - 3 + kDisplaySize; y++) {
+		for (int x = player.get_player_x() - 3; x < player.get_player_x() - 3 + kDisplaySize; x++) {
 			if ((x >= 0 && x < kSize) && (y >= 0 && y < kSize)) {
 				ofImage image = get_image_from_type(level.get_tile(x, y).get_type());
 				image.draw(pixel_x, pixel_y);
+			}
+
+			if (combat && is_combat_space(x, y)) {
+				combat_tile.draw(pixel_x, pixel_y);
 			}
 
 			for (auto entity : location) {
@@ -70,7 +75,7 @@ void ofApp::draw(){
 				if (loc.current_tile.get_coordinate_x() == x && loc.current_tile.get_coordinate_y() == y) {
 					if (registry.has<Enemy>(entity)) {
 						auto &stats = enemies.get(entity);
-						ofImage enemy = get_image_from_name(stats.name);
+						ofImage enemy = get_image(stats.name, stats.direction);
 						enemy.draw(pixel_x, pixel_y);
 					}
 				}
@@ -113,21 +118,25 @@ void ofApp::keyPressed(int key){
 		player.set_turn_direction("up");
 		if (level.is_valid_coordinate(x, y - 1) && level.get_tile(x, y - 1).get_passability() && !is_enemy_at_position(x, y - 1)) {
 			player.set_current_tile(x, y - 1);
+			enemies_action();
 		}
 	} else if (key == 'a') {
 		player.set_turn_direction("left");
 		if (level.is_valid_coordinate(x - 1, y) && level.get_tile(x - 1, y).get_passability() && !is_enemy_at_position(x - 1, y)) {
 			player.set_current_tile(x - 1, y);
+			enemies_action();
 		}
 	} else if (key == 's') {
 		player.set_turn_direction("down");
 		if (level.is_valid_coordinate(x, y + 1) && level.get_tile(x, y + 1).get_passability() && !is_enemy_at_position(x, y + 1)) {
 			player.set_current_tile(x, y + 1);
+			enemies_action();
 		}
 	} else if (key == 'd') {
 		player.set_turn_direction("right");
 		if (level.is_valid_coordinate(x + 1, y) && level.get_tile(x + 1, y).get_passability() && !is_enemy_at_position(x + 1, y)) {
 			player.set_current_tile(x + 1, y);
+			enemies_action();
 		}
 	}
 }
@@ -149,7 +158,15 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
+	if (button == 2 && !combat) {
+		combat = true;
+	} else if (button == 2 && combat) {
+		combat = false;
+	}
 
+	if (button == 0) {
+		std::cout << x << "," << y << std::endl;
+	}
 }
 
 //--------------------------------------------------------------
@@ -163,38 +180,43 @@ void ofApp::mouseEntered(int x, int y){
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseExited(int x, int y){
+void ofApp::mouseExited(int x, int y) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::windowResized(int w, int h){
+void ofApp::windowResized(int w, int h) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg){
+void ofApp::gotMessage(ofMessage msg) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
+void ofApp::dragEvent(ofDragInfo dragInfo) {
 
 }
 
 ofImage ofApp::get_image_from_type(std::string type) {
 	if (type == "bridge_v") {
 		return bridge_v;
-	} else if (type == "bridge_h") {
+	}
+	else if (type == "bridge_h") {
 		return bridge_h;
-	} else if (type == "water") {
+	}
+	else if (type == "water") {
 		return water;
-	} else if (type == "floor" || type == "boss_spawn" 
+	}
+	else if (type == "floor" || type == "boss_spawn"
 		|| type == "boss_gateway" || type == "no_spawn_floor") {
 		return floor;
-	} else if (type == "wall") {
+	}
+	else if (type == "wall") {
 		return wall;
-	} else {
+	}
+	else {
 		return ceiling;
 	}
 }
@@ -202,22 +224,50 @@ ofImage ofApp::get_image_from_type(std::string type) {
 ofImage ofApp::get_image_from_direction(std::string direction) {
 	if (direction == "up") {
 		return player_back;
-	} else if (direction == "left") {
+	}
+	else if (direction == "left") {
 		return player_left;
-	} else if (direction == "right") {
+	}
+	else if (direction == "right") {
 		return player_right;
-	} else {
+	}
+	else {
 		return player_front;
 	}
 }
 
-ofImage ofApp::get_image_from_name(std::string name) {
+//Gets the image for an enemy based on its name and direction
+ofImage ofApp::get_image(std::string name, std::string direction) {
 	if (name == "Crabman") {
-		return crabman_front;
+		if (direction == "up") {
+			return crabman_back;
+		} else if (direction == "left") {
+			return crabman_left;
+		} else if (direction == "right") {
+			return crabman_right;
+		} else {
+			return crabman_front;
+		}
 	} else if (name == "Octopus") {
-		return octopus_front;
+		if (direction == "up") {
+			return octopus_back;
+		} else if (direction == "left") {
+			return octopus_left;
+		} else if (direction == "right") {
+			return octopus_right;
+		} else {
+			return octopus_front;
+		}
 	} else {
-		return eel_front;
+		if (direction == "up") {
+			return eel_back;
+		} else if (direction == "left") {
+			return eel_left;
+		} else if (direction == "right") {
+			return eel_right;
+		} else {
+			return eel_front;
+		}
 	}
 }
 
@@ -228,11 +278,13 @@ void ofApp::create_entities() {
 		registry.assign<Location>(entity, level.get_random_passable_tile());
 		int type = rand() % kEnemyTypes;
 		if (type == 0) {
-			registry.assign<Enemy>(entity, 100, 20, "Crabman");
-		} else if (type == 1) {
-			registry.assign<Enemy>(entity, 40, 10, "Octopus");
-		} else if (type == 2) {
-			registry.assign<Enemy>(entity, 20, 10, "Eel");
+			registry.assign<Enemy>(entity, 100, 20, "Crabman", "front");
+		}
+		else if (type == 1) {
+			registry.assign<Enemy>(entity, 40, 10, "Octopus", "front");
+		}
+		else if (type == 2) {
+			registry.assign<Enemy>(entity, 20, 10, "Eel", "front");
 		}
 	}
 }
@@ -255,4 +307,79 @@ bool ofApp::is_enemy_at_position(int x, int y) {
 //Checks if an enemy is at the current point
 bool ofApp::is_enemy_at_position(Coordinate coordinate) {
 	return is_enemy_at_position(coordinate.get_coordinate_x(), coordinate.get_coordinate_y());
+}
+
+bool ofApp::is_combat_space(int x, int y) {
+	int player_x = player.get_player_x();
+	int player_y = player.get_player_y();
+	if (x == player_x && (y == player_y + 1 || y == player_y - 1)) {
+		return true;
+	} else if (y == player_y && (x == player_x + 1 || x == player_x - 1)) {
+		return true;
+	}
+
+	return false;
+}
+
+void ofApp::enemies_action() {
+	auto locations = registry.view<Location>();
+	auto stats = registry.view<Enemy>();
+	for (auto entity : locations) {
+		if (registry.has<Enemy>(entity)) {
+			auto &loc = locations.get(entity);
+			auto &dir = stats.get(entity);
+			Coordinate destination = move_enemy_randomly(loc.current_tile.get_coordinate_x(), loc.current_tile.get_coordinate_y());
+			if ((loc.current_tile.get_coordinate_x() != destination.get_coordinate_x()) || loc.current_tile.get_coordinate_y() != destination.get_coordinate_y()) {
+				dir.direction = determine_direction_relatively(loc.current_tile, destination);
+			}
+			loc.current_tile = destination;
+		}
+	}
+}
+
+Coordinate ofApp::move_enemy_randomly(int current_x, int current_y) {
+	//Determine the modifiers for x and y
+	int x = (rand() % 3) - 1; // -1 to 1
+	int y = 0; 
+	if (x == 0) {
+		y = (rand() % 3) - 1; // -1 to 1
+	}
+
+	x += current_x;
+	y += current_y;
+
+	int counter = 0;
+	while (!level.is_valid_coordinate(x, y) || !level.get_tile(x, y).get_passability() || is_enemy_at_position(x, y) || (x == player.get_player_x() && y == player.get_player_y())) {
+		if (counter == 4) {
+			return Coordinate(current_x, current_y);
+		}
+
+		x = current_x;
+		y = current_y;
+
+		x = (rand() % 3) - 1;
+		y = 0;
+		if (x == 0) {
+			y = (rand() % 3) - 1; 
+		}
+
+		x += current_x;
+		y += current_y;
+
+		counter++;
+	}
+	
+	return Coordinate(x, y);
+}
+
+std::string ofApp::determine_direction_relatively(Coordinate start, Coordinate end) {
+	if (end.get_coordinate_x() == start.get_coordinate_x() + 1) {
+		return "right";
+	} else if (end.get_coordinate_x() == start.get_coordinate_x() - 1) {
+		return "left";
+	} else if (end.get_coordinate_y() == start.get_coordinate_y() - 1) {
+		return "up";
+	} else {
+		return "down";
+	}
 }

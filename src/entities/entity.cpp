@@ -12,6 +12,7 @@ struct Enemy {
 	int health;
 	int strength;
 	std::string name;
+	std::string direction;
 };
 
 struct Item {

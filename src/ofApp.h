@@ -24,6 +24,7 @@ class ofApp : public ofBaseApp{
 	ofImage player_back;
 	ofImage health_bar;
 	ofImage health_strip;
+	ofImage combat_tile;
 	ofImage crabman_front;
 	ofImage crabman_left;
 	ofImage crabman_right;
@@ -39,6 +40,7 @@ class ofApp : public ofBaseApp{
 	Level level = Level(false);
 	Player player = Player();
 	entt::DefaultRegistry registry;
+	bool combat = false;
 	
 
 	public:
@@ -65,7 +67,7 @@ class ofApp : public ofBaseApp{
 		ofImage get_image_from_direction(std::string direction);
 
 		//Gets the image for an enemy type
-		ofImage get_image_from_name(std::string name);
+		ofImage get_image(std::string name, std::string direction);
 
 		//Add enemies to the level
 		void create_entities();
@@ -74,4 +76,12 @@ class ofApp : public ofBaseApp{
 		bool is_enemy_at_position(int x, int y);
 		bool is_enemy_at_position(Coordinate coordinate);
 
+		//Determines if this is a combat space
+		bool is_combat_space(int x, int y);
+
+		//Enemies take their action
+		void enemies_action();
+		Coordinate move_enemy_randomly(int current_x, int current_y);
+		//This function is intended for one-step movement
+		std::string determine_direction_relatively(Coordinate start, Coordinate end);
 };
