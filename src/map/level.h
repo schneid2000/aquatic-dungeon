@@ -22,7 +22,6 @@ private:
 	Tile map[kSize][kSize];
 	Coordinate start_tile;
 	Coordinate goal_tile;
-	Coordinate start_display_tile;
 	std::vector<Room> room_presets;
 	std::vector<Room> boss_presets;
 
@@ -60,9 +59,6 @@ public:
 
 	//Getter for the player's spawn point
 	Coordinate get_start_tile();
-
-	//Getter for the display window's start point
-	Coordinate get_start_display_tile();
 
 	bool is_valid_coordinate(int x, int y);
 	bool is_valid_coordinate(Coordinate coordinate);

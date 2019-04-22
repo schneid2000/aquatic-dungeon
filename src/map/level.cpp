@@ -98,24 +98,16 @@ Coordinate Level::get_random_tile() {
 }
 
 
-//Set the player's start tile and the top left tile of the display window
+//Set the player's start tile
 void Level::setup_start_tiles() {
 	//The start tile should be any random passable tile
 	start_tile = get_random_passable_tile();
 
-	//The first display tile (since the window is 7x7 tiles, it is 3 up and 3 to the left from the center 
-	start_display_tile = Coordinate(start_tile.get_coordinate_x() - 3, start_tile.get_coordinate_y() - 3);
 }
 
 //Get the player start tile
 Coordinate Level::get_start_tile() {
 	return start_tile;
-}
-
-
-//Get the top left window display tile
-Coordinate Level::get_start_display_tile() {
-	return start_display_tile;
 }
 
 
@@ -276,6 +268,8 @@ void Level::instantiate_level() {
 		generate_random_hall();
 	}
 	add_boss_room();
+
+	setup_start_tiles();
 }
 
 

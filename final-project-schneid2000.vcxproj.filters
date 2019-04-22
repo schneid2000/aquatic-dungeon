@@ -75,7 +75,7 @@
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="DEVELOPMENT.md" />
-    <None Include="PROPOSAL.md" />
     <None Include="README.md" />
+    <None Include="PROPOSAL.md" />
   </ItemGroup>
 </Project>
