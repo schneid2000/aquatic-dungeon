@@ -80,6 +80,7 @@ class ofApp : public ofBaseApp{
 
 		//Determines if this is a combat space
 		bool is_combat_space(int x, int y);
+		bool is_combat_space(Coordinate coordinate);
 
 		//Enemies take their action
 		void enemies_action();

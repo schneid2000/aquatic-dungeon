@@ -24,6 +24,8 @@ private:
 	Coordinate goal_tile;
 	std::vector<Room> room_presets;
 	std::vector<Room> boss_presets;
+	std::vector<Coordinate> path_tiles;
+	int tile_counter;
 
 	
 
@@ -84,4 +86,8 @@ public:
 	void instantiate_level();
 
 	bool path_to_gateway();
+	bool check_for_path(Coordinate search_center);
+	bool seen_tile(Coordinate coordinate);
+
+	void clear();
 };

@@ -28,3 +28,7 @@ struct Equipment {
 };
 
 
+
+
+
+

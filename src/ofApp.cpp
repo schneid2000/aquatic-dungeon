@@ -202,7 +202,7 @@ void ofApp::mousePressed(int x, int y, int button){
 		combat = false;
 	}
 
-	if (button == 0 && combat) {
+	if (button == 0 && is_combat_space(get_coordinate_from_pixel(x, y)) && is_enemy_at_position(get_coordinate_from_pixel(x,y))) {
 		attack_enemy_at_tile(get_coordinate_from_pixel(x, y));
 		enemies_action();
 	}
@@ -241,21 +241,16 @@ void ofApp::dragEvent(ofDragInfo dragInfo) {
 ofImage ofApp::get_image_from_type(std::string type) {
 	if (type == "bridge_v") {
 		return bridge_v;
-	}
-	else if (type == "bridge_h") {
+	} else if (type == "bridge_h") {
 		return bridge_h;
-	}
-	else if (type == "water") {
+	} else if (type == "water") {
 		return water;
-	}
-	else if (type == "floor" || type == "boss_spawn"
+	} else if (type == "floor" || type == "boss_spawn"
 		|| type == "boss_gateway" || type == "no_spawn_floor") {
 		return floor;
-	}
-	else if (type == "wall") {
+	} else if (type == "wall") {
 		return wall;
-	}
-	else {
+	} else {
 		return ceiling;
 	}
 }
@@ -263,14 +258,11 @@ ofImage ofApp::get_image_from_type(std::string type) {
 ofImage ofApp::get_image_from_direction(std::string direction) {
 	if (direction == "up") {
 		return player_back;
-	}
-	else if (direction == "left") {
+	} else if (direction == "left") {
 		return player_left;
-	}
-	else if (direction == "right") {
+	} else if (direction == "right") {
 		return player_right;
-	}
-	else {
+	} else {
 		return player_front;
 	}
 }
@@ -356,6 +348,10 @@ bool ofApp::is_combat_space(int x, int y) {
 	}
 
 	return false;
+}
+
+bool ofApp::is_combat_space(Coordinate coordinate) {
+	return is_combat_space(coordinate.get_coordinate_x(), coordinate.get_coordinate_y());
 }
 
 void ofApp::enemies_action() {

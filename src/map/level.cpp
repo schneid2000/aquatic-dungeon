@@ -27,7 +27,10 @@ Level::Level(bool passable) {
 
 //Gets a specific map tile by the x and y coordinate
 Tile Level::get_tile(int x, int y) {
-	return map[y][x];
+	if (is_valid_coordinate(x, y)) {
+		return map[y][x];
+	}
+	
 }
 
 //Gets a specific map tile by the coordinate
@@ -64,7 +67,7 @@ Coordinate Level::get_random_passable_tile() {
 	int x = rand() % kSize;
 
 	//If that random tile is not passable, continue searching
-	while (!map[y][x].get_passability() || map[y][x].get_type() != "floor") {
+	while (!is_valid_coordinate(x, y) || !map[y][x].get_passability() || map[y][x].get_type() != "floor") {
 		y = rand() % kSize;
 		x = rand() % kSize;
 	}
@@ -80,7 +83,7 @@ Coordinate Level::get_random_impassable_tile() {
 	int x = rand() % kSize;
 
 	//Continues searching if we have not reached a ceiling tile
-	while (map[y][x].get_type() == "ceiling") {
+	while (!is_valid_coordinate(x, y) || map[y][x].get_type() != "ceiling") {
 		y = rand() % kSize;
 		x = rand() % kSize;
 	}
@@ -93,6 +96,10 @@ Coordinate Level::get_random_tile() {
 	//Get a random x and y index (within the level)
 	int y = rand() % kSize;
 	int x = rand() % kSize;
+	while (!is_valid_coordinate(x, y)) {
+		int y = rand() % kSize;
+		int x = rand() % kSize;
+	}
 
 	return Coordinate(x, y);
 }
@@ -262,18 +269,87 @@ float Level::percent_passable_tiles() {
 
 //Generate the level by adding rooms, hallways, and the boss room
 void Level::instantiate_level() {
+	clear();
 	while (percent_passable_tiles() < kPercentPassable) {
 		add_random_room_randomly();
 		add_random_room_randomly();
 		generate_random_hall();
 	}
 	add_boss_room();
-
 	setup_start_tiles();
+	if (!path_to_gateway()) {
+		std::cout << path_tiles.size() << std::endl;
+		instantiate_level();
+	}
+	std::cout << path_tiles.size() << std::endl;
 }
 
 
 //Checks if there is a path from the spawn to the boss room
 bool Level::path_to_gateway() {
-	return true;
+	path_tiles.clear();
+	tile_counter = 0;
+
+	return check_for_path(start_tile);
 }
+
+bool Level::check_for_path(Coordinate search_center) {
+	
+	tile_counter++;
+	path_tiles.push_back(search_center);
+	if (is_valid_coordinate(search_center) && get_tile(search_center).get_type() == "boss_gateway") {
+		std::cout << "goal reached" << std::endl;
+		return true;
+	}
+	if (tile_counter > 900) {
+		return false;
+	}
+
+	if (is_valid_coordinate(search_center.get_coordinate_x() + 1, search_center.get_coordinate_y()) 
+		&& !seen_tile(Coordinate(search_center.get_coordinate_x() + 1, search_center.get_coordinate_y())) 
+		&& (get_tile(search_center.get_coordinate_x() + 1, search_center.get_coordinate_y()).get_type() == "floor" || get_tile(search_center.get_coordinate_x() + 1, search_center.get_coordinate_y()).get_type() == "boss_gateway")) {
+		return check_for_path(Coordinate(search_center.get_coordinate_x() + 1, search_center.get_coordinate_y()));
+	}
+
+	if (is_valid_coordinate(search_center.get_coordinate_x() - 1, search_center.get_coordinate_y()) 
+		&& !seen_tile(Coordinate(search_center.get_coordinate_x() - 1, search_center.get_coordinate_y())) 
+		&& (get_tile(search_center.get_coordinate_x() - 1, search_center.get_coordinate_y()).get_type() == "floor" || get_tile(search_center.get_coordinate_x() - 1, search_center.get_coordinate_y()).get_type() == "boss_gateway")) {
+		return check_for_path(Coordinate(search_center.get_coordinate_x() - 1, search_center.get_coordinate_y()));
+	}
+
+	if (is_valid_coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() + 1) 
+		&& !seen_tile(Coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() + 1)) 
+		&& (get_tile(search_center.get_coordinate_x(), search_center.get_coordinate_y() + 1).get_type() == "floor" || get_tile(search_center.get_coordinate_x(), search_center.get_coordinate_y() + 1).get_type() == "boss_gateway")) {
+		return check_for_path(Coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() + 1));
+	}
+
+	if (is_valid_coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() - 1) 
+		&& !seen_tile(Coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() - 1)) 
+		&& (get_tile(search_center.get_coordinate_x(), search_center.get_coordinate_y() - 1).get_type() == "floor" || get_tile(search_center.get_coordinate_x(), search_center.get_coordinate_y() - 1).get_type() == "boss_gateway")) {
+		return check_for_path(Coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() - 1));
+	}
+	
+	return false;
+}
+
+bool Level::seen_tile(Coordinate coordinate) {
+	for (Coordinate tile : path_tiles) {
+		if (coordinate.get_coordinate_x() == tile.get_coordinate_x() 
+			&& coordinate.get_coordinate_y() == tile.get_coordinate_y()) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+void Level::clear() {
+	for (int y = 0; y < kSize; y++) {
+		for (int x = 0; x < kSize; x++) {
+			map[y][x] = Tile(false, "ceiling");
+		}
+	}
+}
+
+
