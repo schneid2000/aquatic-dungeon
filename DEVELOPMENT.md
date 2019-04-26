@@ -53,7 +53,7 @@
 	-I overrode the input stream for the room class, so I can input the rooms as presets from a text file.
 	-I fixed some developer-friendly issues, like functions that took y, then x values, when x, y values would be more clear.
 
--Level Class Summary
+- Level Class Summary
 	-The Level class contains most of the information about the environment the player moves around in.
 	-I removed some unused code from the class.
 	-I added several generation methods to create a random level:
@@ -63,7 +63,7 @@
 		4. The boss room overrides any tiles it is placed on (normal rooms do not override floor tiles)
 		5. The boss room implements several new tiles, which will be used for the path methods later
 
--Player Mechanics
+- Player Mechanics
 	-Added movement to the player, along with several different graphics to represent a player facing each direction.
 	-Gave the protagonist, Cedar, an avatar! (He is no longer just crabman)
 	-Movement uses WASD, as in most games
@@ -71,15 +71,15 @@
 	-The player also has a health bar, visible in the top left corner of the screen.
 	-The health bar is filled proportionally based on their health as a percentage of their initial total health. 
 
--EnTT Progress
+- EnTT Progress
 	-I figured out that the project does not like C++17 very much, but a C++14 version of EnTT was available.
 	-After some research, I figured out how to get the c++14 version from github.
 	-I tried some very basic functions of the library, and it appears to be functional.
 
--Testing
+- Testing
 	-I started adding tests for the fundamental map classes, starting out with tile, room, and coordinate.
 
--Obstacles
+- Obstacles
 	-In placing the player's health bar, I used a lot of magic numbers to get the placement right.
 	-Some methods, like hallway generation, required necessary modifiers that made lines of code very long. 
 	-I'm having a bit of trouble with the master branch of the project. I'm able to push to another branch but not master.
@@ -90,9 +90,35 @@
 		2. It will likely detect a path by travelling along adjacent passable tiles, trying to reach a special 'gateway' tile
 	-ofApp is quite cluttered, mostly with loading the graphics, but I may need to try to condense some functionality.
 
--Progress
+- Progress
 	-A player can walk around a randomly generated map
 	-Rooms can be created in and pulled from a text file
 	-The player has a health bar that changes based on health
 
 
+## Week 2
+
+- Map Mechanics
+	-I completed the last aspect of the map generation, making sure the spawn point and the boss room are connected
+	-The boss room will now represent the end of the level (originally I think some sort of third point was intended)
+
+- Player Mechanics
+	-The player can now die, which at this point closes out the game (it will probably be more smooth in the future)
+	-The player can enter 'combat mode' which displays the tiles they can attack an enemy from
+	-The player can click their mouse to attack an enemy on one of the viable squares (they do not need to be in combat mode) 
+	-Now when the player moves or attacks, then enemies on the map take a 'turn' and in turn move or attack themselves.
+
+- Entity Mechanics
+	-Using EnTT I created several components to be used for different types of entities.
+	-Entities that will exist in the world will have a Location component, representing their current Coordinate (Enemies, Item drops eventually)
+	-Enemies have an Enemy component that gives them their default health, damage, and enemy type to determine their graphic
+	-Eventually, Items will have several components, like Item, which has general properties and Equipment, which is added to weapons and armor
+	-Inventory Items will have an InventoryItem component, and they will mostly be organized outside of the actual Player object.
+
+- Enemy Mechanics
+	-Enemies now randomly spawn in the level when it is generated (from a minimum to maximum number)
+	-Their type is randomly selected from  the available enemy types (Crabman, Octopus, and Eel)
+	-When no longer at full health, a smaller health bar will display over their head
+	-Enemies will move randomly each time the player moves
+	-When close to the player, enemies will choose from any movement options that close the distance between them and the player, though they have a chance of standing still.
+	-When next to the player, the enemy will attack and do damage to the player.

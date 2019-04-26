@@ -9,6 +9,7 @@
 
 static const int kDisplaySize = 7;
 static const int kEnemyTypes = 3;
+static const int kCardinalDirections = 4;
 static const int kDisplayCenter = 384;
 
 class ofApp : public ofBaseApp{

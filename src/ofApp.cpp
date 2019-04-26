@@ -408,7 +408,7 @@ void ofApp::enemies_action() {
 			destination = loc.current_tile;
 			if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) == 1) {
 				attack_player(dir.strength);
-			} else if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) <= 3) {
+			} else if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) <= 3 && get_euclidean_distance(loc.current_tile, player.get_current_tile()) > 1) {
 				destination = move_enemy_towards_player(loc.current_tile.get_coordinate_x(), loc.current_tile.get_coordinate_y());
 			} else if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) > 3) {
 				destination = move_enemy_randomly(loc.current_tile.get_coordinate_x(), loc.current_tile.get_coordinate_y());
@@ -504,19 +504,25 @@ Coordinate ofApp::move_enemy_towards_player(int current_x, int current_y) {
 	int x = current_x;
 	int y = current_y;
 	int distance = get_euclidean_distance(Coordinate(x, y), player.get_current_tile());
-	if (is_distance_reduced(distance, Coordinate(x + 1, y), player.get_current_tile())) {
-		return Coordinate(x + 1, y);
-	} else if (is_distance_reduced(distance, Coordinate(x - 1, y), player.get_current_tile())) {
-		return Coordinate(x - 1, y);
-	} else if (is_distance_reduced(distance, Coordinate(x, y + 1), player.get_current_tile())) {
-		return Coordinate(x, y + 1);
-	} else if (is_distance_reduced(distance, Coordinate(x, y - 1), player.get_current_tile())) {
-		return Coordinate(x, y - 1);
+	std::vector<bool> distance_changes;
+	std::vector<Coordinate> new_locations;
+	new_locations.push_back(Coordinate(x + 1, y));
+	new_locations.push_back(Coordinate(x - 1, y));
+	new_locations.push_back(Coordinate(x, y + 1));
+	new_locations.push_back(Coordinate(x, y - 1));
+	new_locations.push_back(Coordinate(x, y));
+	distance_changes.push_back(is_distance_reduced(distance, Coordinate(x + 1, y), player.get_current_tile()));
+	distance_changes.push_back(is_distance_reduced(distance, Coordinate(x - 1, y), player.get_current_tile()));
+	distance_changes.push_back(is_distance_reduced(distance, Coordinate(x, y + 1), player.get_current_tile()));
+	distance_changes.push_back(is_distance_reduced(distance, Coordinate(x, y - 1), player.get_current_tile()));
+	//This last value represents no movement
+	distance_changes.push_back(true);
+	int chosen_value = rand() % distance_changes.size();
+	while (!distance_changes[chosen_value]) {
+		chosen_value = rand() % distance_changes.size();
 	}
-	else {
-		return Coordinate(x, y);
-	}
-	
+
+	return new_locations[chosen_value];
 }
 
 
