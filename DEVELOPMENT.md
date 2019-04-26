@@ -122,3 +122,19 @@
 	-Enemies will move randomly each time the player moves
 	-When close to the player, enemies will choose from any movement options that close the distance between them and the player, though they have a chance of standing still.
 	-When next to the player, the enemy will attack and do damage to the player.
+
+
+- Obstacles
+	-A lot of my code still needs to be cleaned up and organized
+	-For example, I need to create more shorthand and utility functions so I'm not frequently repeating code 
+	-I also need to create more utility functions to reduce long lines caused by conditionals with lots of conditions
+	-I need to test more methods, but I think trying to test ofApp methods might give me some trouble
+	-I still need to fix the Github project so that I'm pushing to the correct branch. 
+	-I might need to relocated some ofApp functions to the entity file for example, for organization's sake.
+
+- Progress
+	-The player can check which squares they can attack from
+	-The player can attack enemies, and the player dies if they have no health
+	-Enemies spawn randomly in the level, and move randomly when far away
+	-Enemies move towards the player when close and attack when adjacent
+	-Enemies display a health bar when attacked and disappear when killed
