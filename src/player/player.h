@@ -3,6 +3,8 @@
 #include "../map/coordinate.h"
 #include <string>
 
+static const int kInventorySize = 9;
+
 class Player {
 private:
 	Coordinate current_tile;

@@ -3,7 +3,7 @@
 #include "ofMain.h"
 #include "map/level.h"
 #include "player/player.h"
-#include "entities/entity.cpp"
+#include "entities/entity.h"
 #include <iostream>
 #include <entt/entt.hpp>
 
@@ -18,6 +18,7 @@ class ofApp : public ofBaseApp{
 	ofImage water;
 	ofImage ceiling;
 	ofImage floor;
+	ofImage boss_wall;
 	ofImage player_front;
 	ofImage player_left;
 	ofImage player_right;
@@ -39,6 +40,14 @@ class ofApp : public ofBaseApp{
 	ofImage eel_left;
 	ofImage eel_right;
 	ofImage eel_back;
+	ofImage dagger;
+	ofImage gladius;
+	ofImage health_potion;
+	ofImage magic_orb_1;
+	ofImage magic_orb_2;
+	ofImage magic_orb_3;
+	ofImage random_item_bag;
+	ofImage shield;
 	Level level = Level(false);
 	Player player = Player();
 	entt::DefaultRegistry registry;
@@ -91,4 +100,11 @@ class ofApp : public ofBaseApp{
 		Coordinate get_coordinate_from_pixel(int pixel_x, int pixel_y);
 
 		void attack_enemy_at_tile(Coordinate target);
+
+		Coordinate move_enemy_towards_player(int current_x, int current_y);
+		bool is_distance_reduced(int initial_d, Coordinate new_start, Coordinate end);
+		void attack_player(int damage);
+
+		bool is_tile_unobstructed(int x, int y);
+		bool is_tile_unobstructed(Coordinate coordinate);
 };

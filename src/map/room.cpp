@@ -31,6 +31,8 @@ Room::Room(int new_height, int new_width, std::string tiles) {
 			room_tiles.push_back(Tile(true, "boss_gateway"));
 		} else if (tiles[i] == '_') {
 			room_tiles.push_back(Tile(true, "no_spawn_floor"));
+		} else if (tiles[i] == 'W') {
+			room_tiles.push_back(Tile(false, "boss_wall"));
 		} else {
 			//Any ceiling or otherwise unrecognized tile should become a ceiling tile
 			room_tiles.push_back(Tile(false, "ceiling"));

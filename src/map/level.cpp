@@ -133,6 +133,15 @@ bool Level::is_valid_coordinate(Coordinate coordinate) {
 	return (is_valid_coordinate(coordinate.get_coordinate_x(), coordinate.get_coordinate_y()));
 }
 
+bool Level::is_valid_passable_tile(int x, int y) {
+	return (is_valid_coordinate(x, y) && map[y][x].get_passability());
+}
+
+bool Level::is_valid_passable_tile(Coordinate coordinate) {
+	return is_valid_passable_tile(coordinate.get_coordinate_x(), coordinate.get_coordinate_y());
+}
+
+
 //Loads the room presets located in rooms.txt in the Presets folder
 void Level::load_room_presets() {
 	std::fstream filestream;
@@ -278,10 +287,8 @@ void Level::instantiate_level() {
 	add_boss_room();
 	setup_start_tiles();
 	if (!path_to_gateway()) {
-		std::cout << path_tiles.size() << std::endl;
 		instantiate_level();
 	}
-	std::cout << path_tiles.size() << std::endl;
 }
 
 
@@ -298,7 +305,6 @@ bool Level::check_for_path(Coordinate search_center) {
 	tile_counter++;
 	path_tiles.push_back(search_center);
 	if (is_valid_coordinate(search_center) && get_tile(search_center).get_type() == "boss_gateway") {
-		std::cout << "goal reached" << std::endl;
 		return true;
 	}
 	if (tile_counter > 900) {

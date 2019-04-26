@@ -192,6 +192,7 @@
     <ClCompile Include="test\test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\entities\entity.h" />
     <ClInclude Include="src\map\coordinate.h" />
     <ClInclude Include="src\map\level.h" />
     <ClInclude Include="src\map\room.h" />

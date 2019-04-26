@@ -68,6 +68,9 @@
     <ClInclude Include="test\catch.hpp">
       <Filter>test</Filter>
     </ClInclude>
+    <ClInclude Include="src\entities\entity.h">
+      <Filter>src\entities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />

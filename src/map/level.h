@@ -65,6 +65,9 @@ public:
 	bool is_valid_coordinate(int x, int y);
 	bool is_valid_coordinate(Coordinate coordinate);
 
+	bool is_valid_passable_tile(int x, int y);
+	bool is_valid_passable_tile(Coordinate coordinate);
+
 	//Give the level the room presets
 	void load_room_presets();
 

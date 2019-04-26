@@ -1,33 +1,23 @@
 #pragma once
 
-#include <entt/entt.hpp>
-#include "../map/coordinate.h"
-#include <string>
-
-struct Location {
-	Coordinate current_tile;
-};
-
-struct Enemy {
-	int health;
-	int total_health;
-	int strength;
-	std::string name;
-	std::string direction;
-};
-
-struct Item {
-	std::string name;
-	std::string type;
-};
-
-struct Equipment {
-	int melee_modifier;
-	int armor_strength;
-	int magic_modifier;
-};
+#include "entity.h"
 
 
+
+
+int get_euclidean_distance(Coordinate start, Coordinate end) {
+	int x = start.get_coordinate_x() - end.get_coordinate_x();
+	int y = start.get_coordinate_y() - end.get_coordinate_y();
+	if (x < 0) {
+		x *= -1;
+	}
+
+	if (y < 0) {
+		y *= -1;
+	}
+
+	return x + y;
+}
 
 
 
