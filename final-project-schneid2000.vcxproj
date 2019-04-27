@@ -182,6 +182,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\entities\entity.cpp" />
+    <ClCompile Include="src\game\game.cpp" />
     <ClCompile Include="src\map\coordinate.cpp" />
     <ClCompile Include="src\map\level.cpp" />
     <ClCompile Include="src\map\room.cpp" />
@@ -193,6 +194,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\entities\entity.h" />
+    <ClInclude Include="src\game\game.h" />
     <ClInclude Include="src\map\coordinate.h" />
     <ClInclude Include="src\map\level.h" />
     <ClInclude Include="src\map\room.h" />

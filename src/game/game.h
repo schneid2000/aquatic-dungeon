@@ -1,0 +1,59 @@
+#pragma once
+
+#include "../map/level.h"
+#include "../player/player.h"
+#include "../entities/entity.h"
+#include <entt/entt.hpp>
+
+static const int kEnemyTypes = 3;
+static const int kMinEntities = 6; //The actual value this represents will be 1 less
+static const int kMaxAdditionalEntities = 10; //The actual value this represents will be 1 less
+
+
+class Game {
+private:
+	Level level;
+	Player player;
+	entt::DefaultRegistry registry;
+	std::string mode;
+
+
+
+
+public:
+
+	//Creates enemies and puts them in the level
+	void create_entities();
+
+	//Checks the map index for an enemy
+	bool is_enemy_at_position(int x, int y);
+	bool is_enemy_at_position(Coordinate coordinate);
+
+	//Checks the space to see if the player can attack there
+	bool is_combat_space(int x, int y);
+	bool is_combat_space(Coordinate coordinate);
+
+	//Takes a 'turn' for all enemies
+	void enemies_action();
+
+	//Choose a random position (adjacent or no movement) for the enemy to move to
+	Coordinate move_enemy_randomly(int x, int y);
+	Coordinate move_enemy_randomly(Coordinate coordinate);
+
+	std::string determine_direction_relatively(Coordinate start, Coordinate end);
+
+
+	Coordinate get_coordinate_from_pixel(int pixel_x, int pixel_y);
+
+	void attack_enemy_at_tile(Coordinate target);
+
+	Coordinate move_enemy_towards_player(int current_x, int current_y);
+	bool is_distance_reduced(int initial_d, Coordinate new_start, Coordinate end);
+
+	void attack_player(int damage);
+
+	bool is_tile_unobstructed(int x, int y);
+	bool is_tile_unobstructed(Coordinate coordinate);
+
+
+};

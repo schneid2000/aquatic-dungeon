@@ -28,6 +28,9 @@
     <ClCompile Include="test\test.cpp">
       <Filter>test</Filter>
     </ClCompile>
+    <ClCompile Include="src\game\game.cpp">
+      <Filter>src\game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -44,6 +47,9 @@
     </Filter>
     <Filter Include="test">
       <UniqueIdentifier>{e500534e-33f5-43e9-8368-878e2b827ed2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\game">
+      <UniqueIdentifier>{50ce2b4b-69bb-45d9-a1e6-bae96d79b189}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -70,6 +76,9 @@
     </ClInclude>
     <ClInclude Include="src\entities\entity.h">
       <Filter>src\entities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game\game.h">
+      <Filter>src\game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
