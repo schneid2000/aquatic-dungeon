@@ -60,6 +60,7 @@ public:
 
 
 	Coordinate get_coordinate_from_pixel(int pixel_x, int pixel_y);
+	Coordinate get_relative_coordinate_from_pixel(int pixel_x, int pixel_y);
 
 	void attack_enemy_at_tile(Coordinate target);
 
@@ -72,6 +73,9 @@ public:
 	bool is_tile_unobstructed(Coordinate coordinate);
 
 
+	int get_slot_from_relative_coordinate(Coordinate coordinate);
+	Coordinate get_coordinate_from_slot(int slot);
+	int get_random_value_by_type(std::string type, std::string compare_type);
 	std::string get_random_item_type();
 	std::string generate_random_name(std::string type);
 	std::string get_random_image_name(std::string type);

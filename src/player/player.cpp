@@ -4,6 +4,7 @@ Player::Player() {
 	for (int slot = 0; slot < kInventorySize; slot++) {
 		occupied_slots[slot] = false;
 	}
+	selected_slot = -1;
 }
 
 Player::Player(Coordinate start_tile, int start_health, int start_strength) {
@@ -14,6 +15,7 @@ Player::Player(Coordinate start_tile, int start_health, int start_strength) {
 	for (int slot = 0; slot < kInventorySize; slot++) {
 		occupied_slots[slot] = false;
 	}
+	selected_slot = -1;
 }
 
 //Getter for the current tile
@@ -116,4 +118,12 @@ void Player::occupy_slot(int index) {
 
 void Player::free_slot(int index) {
 	occupied_slots[index] = false;
+}
+
+int Player::get_selected_slot() {
+	return selected_slot;
+}
+
+void Player::set_selected_slot(int slot) {
+	selected_slot = slot;
 }

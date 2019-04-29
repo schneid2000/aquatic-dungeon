@@ -17,6 +17,7 @@ private:
 	int strength;
 
 	bool occupied_slots[kInventorySize];
+	int selected_slot;
 
 public:
 	//Empty constructor
@@ -59,4 +60,7 @@ public:
 	void free_slot(int index);
 
 	Coordinate coord_of_first_empty_slot();
+
+	int get_selected_slot();
+	void set_selected_slot(int slot);
 };

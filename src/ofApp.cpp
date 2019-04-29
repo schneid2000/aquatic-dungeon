@@ -27,10 +27,10 @@ void ofApp::setup(){
 	enemy_health_bar.load("graphics/UI/enemy_health_bar.png");
 	enemy_health_strip.load("graphics/UI/enemy_health_slice.png");
 	inventory_slot.load("graphics/UI/inventory_slot.png");
+	selected_inventory_slot.load("graphics/UI/inventory_slot_clicked.png");
 	weapon_slot.load("graphics/UI/inventory_slot_weapon.png");
 	armor_slot.load("graphics/UI/inventory_slot_armor.png");
 	magic_slot.load("graphics/UI/inventory_slot_magic.png");
-
 
 
 	//Enemy graphics
@@ -77,6 +77,7 @@ void ofApp::update(){
 			game.get_registry().remove<Enemy>(entity);
 			std::string type = game.get_random_item_type();
 			game.get_registry().assign<Item>(entity, game.generate_random_name(type), type, game.get_random_image_name(type));
+			game.get_registry().assign<Equipment>(entity, game.get_random_value_by_type(type, "Weapon"), game.get_random_value_by_type(type, "Armor"), game.get_random_value_by_type(type, "Magic"));
 		}
 	}
 
@@ -115,9 +116,6 @@ void ofApp::draw(){
 						auto &info = items.get(entity);
 						ofImage item_image = get_image_from_item(info.image);
 						item_image.draw(pixel_x, pixel_y);
-						if (loc.current_tile.get_coordinate_x() == game.get_player().get_player_x() && loc.current_tile.get_coordinate_y() == game.get_player().get_player_y()) {
-							press_start_2p.drawString(info.name, 32, 128);
-						}
 					}
 
 
@@ -195,18 +193,50 @@ void ofApp::draw(){
 		for (int y = 512; y < 768; y += 128) {
 			for (int x = 256; x < 640; x += 128) {
 				inventory_slot.draw(x, y);
+				if (game.get_player().get_selected_slot() != -1) {
+					Coordinate current = game.get_coordinate_from_slot(game.get_player().get_selected_slot());
+					if (current.get_coordinate_x() * 128 == x && current.get_coordinate_y() * 128 == y) {
+						selected_inventory_slot.draw(x, y);
+					}
+				}
+				
 			}
 		}
 
 		auto locations = game.get_registry().view<Location>();
 		auto inventory_items = game.get_registry().view<InventorySlot>();
 		auto item_stats = game.get_registry().view<Item>();
+		auto equip_stats = game.get_registry().view<Equipment>();
 		for (auto item : inventory_items) {
 			auto &loc = locations.get(item);
 			auto &stats = item_stats.get(item);
 			ofImage image = get_image_from_item(stats.image);
 			image.draw(128 * loc.current_tile.get_coordinate_x(), 128 * loc.current_tile.get_coordinate_y());
 		}
+
+		Coordinate current = game.get_relative_coordinate_from_pixel(mouseX, mouseY);
+		for (auto item : inventory_items) {
+			auto &loc = locations.get(item);
+			auto &stats = item_stats.get(item);
+			if (current.get_coordinate_x() == loc.current_tile.get_coordinate_x()
+				&& current.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
+				press_start_2p.drawString(stats.name, mouseX, mouseY);
+				if (game.get_registry().has<Equipment>(item)) {
+					auto &equip = equip_stats.get(item);
+					if (stats.type == "Weapon") {
+						press_start_2p.drawString("+ " + std::to_string(equip.melee_modifier) + " Melee Damage", mouseX, mouseY + 24);
+					} else if (stats.type == "Armor") {
+						press_start_2p.drawString("+ " + std::to_string(equip.armor_strength) + " Armor", mouseX, mouseY + 24);
+					} else if (stats.type == "Magic") {
+						press_start_2p.drawString("+ " + std::to_string(equip.magic_modifier) + " Magic Damage", mouseX, mouseY + 24);
+					}
+				}
+			}
+		}
+
+
+			
+
 	}
 	
 	
@@ -273,8 +303,8 @@ void ofApp::keyReleased(int key){
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
-
+void ofApp::mouseMoved(int x, int y){
+	
 }
 
 //--------------------------------------------------------------
@@ -293,10 +323,30 @@ void ofApp::mousePressed(int x, int y, int button){
 
 	//Left click is the attack button
 	//Checks to make sure the attack is within range and there is an enemy on the clicked tile
-	if (button == 0 && game.is_combat_space(game.get_coordinate_from_pixel(x, y)) 
+	if (button == 0 && game.get_mode() != "inventory" && game.is_combat_space(game.get_coordinate_from_pixel(x, y)) 
 		&& game.is_enemy_at_position(game.get_coordinate_from_pixel(x,y))) {
 		game.attack_enemy_at_tile(game.get_coordinate_from_pixel(x, y));
 		game.enemies_action();
+	}
+
+	if (button == 0 && game.get_mode() == "inventory" && game.get_player().get_selected_slot() == -1) {
+		Coordinate current = game.get_relative_coordinate_from_pixel(x, y);
+		auto inventory_items = game.get_registry().view<InventorySlot>();
+		auto locations = game.get_registry().view<Location>();
+		for (auto item : inventory_items) {
+			auto &loc = locations.get(item);
+			if (current.get_coordinate_x() == loc.current_tile.get_coordinate_x()
+				&& current.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
+				game.get_player().set_selected_slot(game.get_slot_from_relative_coordinate(current));
+			}
+		}
+	}
+	else if (button == 0 && game.get_mode() == "inventory" && game.get_player().get_selected_slot() != -1) {
+		Coordinate current = game.get_relative_coordinate_from_pixel(x, y);
+		Coordinate slot = game.get_coordinate_from_slot(game.get_player().get_selected_slot());
+		if (current.get_coordinate_x() == slot.get_coordinate_x() && current.get_coordinate_y() == slot.get_coordinate_y()) {
+			game.get_player().set_selected_slot(-1);
+		}
 	}
 }
 

@@ -221,6 +221,13 @@ Coordinate Game::get_coordinate_from_pixel(int pixel_x, int pixel_y) {
 	return Coordinate(x, y);
 }
 
+Coordinate Game::get_relative_coordinate_from_pixel(int pixel_x, int pixel_y) {
+	int x = pixel_x / 128;
+	int y = pixel_y / 128;
+
+	return Coordinate(x, y);
+}
+
 void Game::attack_enemy_at_tile(Coordinate target) {
 	auto locations = registry.view<Location>();
 	auto stats = registry.view<Enemy>();
@@ -294,6 +301,48 @@ bool Game::is_tile_unobstructed(int x, int y) {
 bool Game::is_tile_unobstructed(Coordinate coordinate) {
 	return is_tile_unobstructed(coordinate.get_coordinate_x(), coordinate.get_coordinate_y());
 }
+
+
+
+int Game::get_slot_from_relative_coordinate(Coordinate coordinate) {
+	if (coordinate.get_coordinate_y() == 1) {
+		return coordinate.get_coordinate_x() - ((coordinate.get_coordinate_x() % 2) + 1);
+	} else if (coordinate.get_coordinate_y() == 4) {
+		return coordinate.get_coordinate_x() + 1;
+	} else if (coordinate.get_coordinate_y() == 5) {
+		return coordinate.get_coordinate_x() + 4;
+	}
+}
+
+Coordinate Game::get_coordinate_from_slot(int slot) {
+	if (slot >= 0 && slot < 3) {
+		return Coordinate(slot + (slot + 1), 1);
+	} else if (slot >= 3 && slot < 6) {
+		return Coordinate(slot - 1, 4);
+	}
+	else if (slot >= 6) {
+		return Coordinate(slot - 4, 5);
+	}
+}
+
+
+
+int Game::get_random_value_by_type(std::string type, std::string compare_type) {
+	if (type == compare_type) {
+		if (type == "Armor") {
+			return (rand() % 10);
+		}
+		else if (type == "Weapon") {
+			return (rand() % 20);
+		}
+		else {
+			return (rand() % 10);
+		}
+	}
+	
+	return 0;
+}
+
 
 std::string Game::get_random_item_type() {
 	int type = rand() % kItemTypes;

@@ -32,6 +32,7 @@ class ofApp : public ofBaseApp{
 	ofImage enemy_health_bar;
 	ofImage enemy_health_strip;
 	ofImage inventory_slot;
+	ofImage selected_inventory_slot;
 	ofImage weapon_slot;
 	ofImage magic_slot;
 	ofImage armor_slot;
