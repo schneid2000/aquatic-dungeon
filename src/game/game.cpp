@@ -54,11 +54,9 @@ void Game::create_entities() {
 		int type = rand() % kEnemyTypes;
 		if (type == 0) {
 			registry.assign<Enemy>(entity, 100, 100, 20, "Crabman", "front");
-		}
-		else if (type == 1) {
+		} else if (type == 1) {
 			registry.assign<Enemy>(entity, 40, 40, 10, "Octopus", "front");
-		}
-		else if (type == 2) {
+		} else if (type == 2) {
 			registry.assign<Enemy>(entity, 20, 20, 10, "Eel", "front");
 		}
 	}
@@ -98,8 +96,7 @@ bool Game::is_combat_space(int x, int y) {
 	//If the tile is immediately above, below, left, or right, return true
 	if (x == player_x && (y == player_y + 1 || y == player_y - 1)) {
 		return true;
-	}
-	else if (y == player_y && (x == player_x + 1 || x == player_x - 1)) {
+	} else if (y == player_y && (x == player_x + 1 || x == player_x - 1)) {
 		return true;
 	}
 
@@ -151,8 +148,7 @@ void Game::enemies_action() {
 		//If the enemy is not next to the player and the destination has changed, change the direction based on the destination 
 		if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) > 1 && (loc.current_tile.get_coordinate_x() != destination.get_coordinate_x()) || loc.current_tile.get_coordinate_y() != destination.get_coordinate_y()) {
 			dir.direction = determine_direction_relatively(loc.current_tile, destination);
-		}
-		else if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) == 1) {
+		} else if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) == 1) {
 			//Otherwise change direction based on the player
 			dir.direction = determine_direction_relatively(loc.current_tile, player.get_current_tile());
 		}
@@ -206,14 +202,11 @@ Coordinate Game::move_enemy_randomly(Coordinate coordinate) {
 std::string Game::determine_direction_relatively(Coordinate start, Coordinate end) {
 	if (end.get_coordinate_x() == start.get_coordinate_x() + 1) {
 		return "right";
-	}
-	else if (end.get_coordinate_x() == start.get_coordinate_x() - 1) {
+	} else if (end.get_coordinate_x() == start.get_coordinate_x() - 1) {
 		return "left";
-	}
-	else if (end.get_coordinate_y() == start.get_coordinate_y() - 1) {
+	} else if (end.get_coordinate_y() == start.get_coordinate_y() - 1) {
 		return "up";
-	}
-	else {
+	} else {
 		return "down";
 	}
 }
@@ -306,11 +299,9 @@ std::string Game::get_random_item_type() {
 	int type = rand() % kItemTypes;
 	if (type == 0) {
 		return "Armor";
-	}
-	else if (type == 1) {
+	} else if (type == 1) {
 		return "Magic";
-	}
-	else {
+	} else {
 		return "Weapon";
 	}
 }
@@ -382,5 +373,21 @@ std::string Game::get_random_image_name(std::string type) {
 		return weapon_names[rand() % kWeaponImages];
 	} else {
 		return "random_item_bag";
+	}
+}
+
+void Game::check_to_add_item() {
+	auto items = registry.view<Item>();
+	auto locations = registry.view<Location>();
+	for (auto entity : items) {
+		if (registry.has<Location>(entity) && !registry.has<InventorySlot>(entity)) {
+			auto &loc = locations.get(entity);
+			if (loc.current_tile.get_coordinate_x() == player.get_player_x()
+				&& loc.current_tile.get_coordinate_y() == player.get_player_y()) {
+				registry.assign<InventorySlot>(entity, player.get_first_empty_slot(), "default");
+				registry.replace<Location>(entity, player.coord_of_first_empty_slot());
+				player.occupy_slot(player.get_first_empty_slot());
+			}
+		}
 	}
 }

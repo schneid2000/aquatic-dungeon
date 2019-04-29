@@ -76,4 +76,6 @@ public:
 	std::string generate_random_name(std::string type);
 	std::string get_random_image_name(std::string type);
 
+	void check_to_add_item();
+
 };

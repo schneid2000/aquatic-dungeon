@@ -1,7 +1,9 @@
 #include "player.h"
 
 Player::Player() {
-
+	for (int slot = 0; slot < kInventorySize; slot++) {
+		occupied_slots[slot] = false;
+	}
 }
 
 Player::Player(Coordinate start_tile, int start_health, int start_strength) {
@@ -9,6 +11,9 @@ Player::Player(Coordinate start_tile, int start_health, int start_strength) {
 	total_health = start_health;
 	health = start_health;
 	strength = start_strength;
+	for (int slot = 0; slot < kInventorySize; slot++) {
+		occupied_slots[slot] = false;
+	}
 }
 
 //Getter for the current tile
@@ -55,4 +60,60 @@ std::string Player::get_turn_direction() {
 //Sets the direction the player turned in
 void Player::set_turn_direction(std::string new_direction) {
 	turn_direction = new_direction;
+}
+
+//Returns true if the player's inventory is full
+bool Player::is_inventory_full() {
+	for (int slot = kFirstItemIndex; slot < kInventorySize; slot++) {
+		if (!occupied_slots[slot]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+//Checks if a particular slot in the player's inventory is empty
+bool Player::slot_is_empty(int index) {
+	if (occupied_slots[index]) {
+		return false;
+	}
+
+	return true;
+}
+
+
+//Gets the first empty slot in the 6 free slots of the player inventory
+//Returns -1 if the player's inventory is full
+int Player::get_first_empty_slot() {
+	for (int slot = kFirstItemIndex; slot < kInventorySize; slot++) {
+		if (!occupied_slots[slot]) {
+			return slot;
+		}
+	}
+
+	return -1;
+}
+
+Coordinate Player::coord_of_first_empty_slot() {
+	int slot = get_first_empty_slot();
+	int y = 4;
+	int x = 2;
+	if (slot > 5) {
+		y += 1;
+	}
+
+	x += slot % 3;
+
+	return Coordinate(x, y);
+}
+
+
+void Player::occupy_slot(int index) {
+	occupied_slots[index] = true;
+}
+
+void Player::free_slot(int index) {
+	occupied_slots[index] = false;
 }

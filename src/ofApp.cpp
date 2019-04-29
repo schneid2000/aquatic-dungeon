@@ -79,6 +79,8 @@ void ofApp::update(){
 			game.get_registry().assign<Item>(entity, game.generate_random_name(type), type, game.get_random_image_name(type));
 		}
 	}
+
+	game.check_to_add_item();
 }
 
 //--------------------------------------------------------------
@@ -194,6 +196,16 @@ void ofApp::draw(){
 			for (int x = 256; x < 640; x += 128) {
 				inventory_slot.draw(x, y);
 			}
+		}
+
+		auto locations = game.get_registry().view<Location>();
+		auto inventory_items = game.get_registry().view<InventorySlot>();
+		auto item_stats = game.get_registry().view<Item>();
+		for (auto item : inventory_items) {
+			auto &loc = locations.get(item);
+			auto &stats = item_stats.get(item);
+			ofImage image = get_image_from_item(stats.image);
+			image.draw(128 * loc.current_tile.get_coordinate_x(), 128 * loc.current_tile.get_coordinate_y());
 		}
 	}
 	
