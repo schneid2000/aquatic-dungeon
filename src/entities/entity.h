@@ -18,12 +18,17 @@ struct Enemy {
 struct Item {
 	std::string name;
 	std::string type;
+	std::string image;
 };
 
 struct Equipment {
 	int melee_modifier;
 	int armor_strength;
 	int magic_modifier;
+};
+
+struct Healing {
+	int health;
 };
 
 struct InventorySlot {

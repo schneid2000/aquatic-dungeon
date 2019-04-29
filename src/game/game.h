@@ -6,9 +6,13 @@
 #include <entt/entt.hpp>
 
 static const int kEnemyTypes = 3;
+static const int kItemTypes = 3; //Armor items, Magic items, Weapons
 static const int kMinEntities = 6; //The actual value this represents will be 1 less
 static const int kMaxAdditionalEntities = 10; //The actual value this represents will be 1 less
 
+static const int kWeaponImages = 2;
+static const int kArmorImages = 1;
+static const int kMagicImages = 3;
 
 class Game {
 private:
@@ -21,6 +25,18 @@ private:
 
 
 public:
+	//Creates the a default style game
+	Game();
+
+	//Getters
+	Level& get_level();
+	Player& get_player();
+	entt::DefaultRegistry& get_registry();
+	std::string get_mode();
+	bool in_combat_mode();
+
+	//Setters
+	void set_mode(std::string new_mode);
 
 	//Creates enemies and puts them in the level
 	void create_entities();
@@ -55,5 +71,9 @@ public:
 	bool is_tile_unobstructed(int x, int y);
 	bool is_tile_unobstructed(Coordinate coordinate);
 
+
+	std::string get_random_item_type();
+	std::string generate_random_name(std::string type);
+	std::string get_random_image_name(std::string type);
 
 };

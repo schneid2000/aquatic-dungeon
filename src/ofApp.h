@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "game/game.h"
 #include "map/level.h"
 #include "player/player.h"
 #include "entities/entity.h"
@@ -8,9 +9,10 @@
 #include <entt/entt.hpp>
 
 static const int kDisplaySize = 7;
-static const int kEnemyTypes = 3;
 static const int kCardinalDirections = 4;
 static const int kDisplayCenter = 384;
+
+
 
 class ofApp : public ofBaseApp{
 	ofImage bridge_v;
@@ -29,6 +31,10 @@ class ofApp : public ofBaseApp{
 	ofImage combat_tile;
 	ofImage enemy_health_bar;
 	ofImage enemy_health_strip;
+	ofImage inventory_slot;
+	ofImage weapon_slot;
+	ofImage magic_slot;
+	ofImage armor_slot;
 	ofImage crabman_front;
 	ofImage crabman_left;
 	ofImage crabman_right;
@@ -49,10 +55,8 @@ class ofApp : public ofBaseApp{
 	ofImage magic_orb_3;
 	ofImage random_item_bag;
 	ofImage shield;
-	Level level = Level(false);
-	Player player = Player();
-	entt::DefaultRegistry registry;
-	bool combat = false;
+	ofTrueTypeFont press_start_2p;
+	Game game;
 	
 
 	public:
@@ -81,31 +85,8 @@ class ofApp : public ofBaseApp{
 		//Gets the image for an enemy type
 		ofImage get_image(std::string name, std::string direction);
 
-		//Add enemies to the level
-		void create_entities();
+		//Gets the image for an item type
+		ofImage get_image_from_item(std::string image);
 
-		//Checks if there is an enemy at the desired position
-		bool is_enemy_at_position(int x, int y);
-		bool is_enemy_at_position(Coordinate coordinate);
-
-		//Determines if this is a combat space
-		bool is_combat_space(int x, int y);
-		bool is_combat_space(Coordinate coordinate);
-
-		//Enemies take their action
-		void enemies_action();
-		Coordinate move_enemy_randomly(int current_x, int current_y);
-		//This function is intended for one-step movement
-		std::string determine_direction_relatively(Coordinate start, Coordinate end);
-
-		Coordinate get_coordinate_from_pixel(int pixel_x, int pixel_y);
-
-		void attack_enemy_at_tile(Coordinate target);
-
-		Coordinate move_enemy_towards_player(int current_x, int current_y);
-		bool is_distance_reduced(int initial_d, Coordinate new_start, Coordinate end);
-		void attack_player(int damage);
-
-		bool is_tile_unobstructed(int x, int y);
-		bool is_tile_unobstructed(Coordinate coordinate);
+		
 };

@@ -26,6 +26,12 @@ void ofApp::setup(){
 	combat_tile.load("graphics/UI/combat_tile.png");
 	enemy_health_bar.load("graphics/UI/enemy_health_bar.png");
 	enemy_health_strip.load("graphics/UI/enemy_health_slice.png");
+	inventory_slot.load("graphics/UI/inventory_slot.png");
+	weapon_slot.load("graphics/UI/inventory_slot_weapon.png");
+	armor_slot.load("graphics/UI/inventory_slot_armor.png");
+	magic_slot.load("graphics/UI/inventory_slot_magic.png");
+
+
 
 	//Enemy graphics
 	crabman_front.load("graphics/Sprites/Crabman/crabman_front.png");
@@ -52,26 +58,25 @@ void ofApp::setup(){
 	random_item_bag.load("graphics/Items/random_item_bag.png");
 	shield.load("graphics/Items/shield.png");
 
+	//Font 
+	press_start_2p.load("graphics/Fonts/PressStart2P.ttf", 16);
 
-
-	level.load_room_presets();
 	std::cout << "Creating the level...\n";
-	level.instantiate_level();
-	player = Player(level.get_start_tile(), 100, 10);
-	create_entities();
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	if (player.get_health() <= 0) {
+	if (game.get_player().get_health() <= 0) {
 		std::exit(0);
 	}
 
-	auto stats = registry.view<Enemy>();
+	auto stats = game.get_registry().view<Enemy>();
 	for (auto entity : stats) {
 		auto &opponent = stats.get(entity);
 		if (opponent.health <= 0) {
-			registry.destroy(entity);
+			game.get_registry().remove<Enemy>(entity);
+			std::string type = game.get_random_item_type();
+			game.get_registry().assign<Item>(entity, game.generate_random_name(type), type, game.get_random_image_name(type));
 		}
 	}
 }
@@ -81,29 +86,40 @@ void ofApp::draw(){
 	int pixel_x = 0;
 	int pixel_y = 0;
 
-	auto location = registry.view<Location>();
-	auto enemies = registry.view<Enemy>();
+	auto location = game.get_registry().view<Location>();
+	auto enemies = game.get_registry().view<Enemy>();
+	auto items = game.get_registry().view<Item>();
 
-	int display_y = player.get_player_y() - 3;
-	int display_x = player.get_player_x() - 3;
+	int display_y = game.get_player().get_player_y() - 3;
+	int display_x = game.get_player().get_player_x() - 3;
 
 
 	//Tile display
 	for (int y = display_y; y < display_y + kDisplaySize; y++) {
 		for (int x = display_x; x < display_x + kDisplaySize; x++) {
 			if ((x >= 0 && x < kSize) && (y >= 0 && y < kSize)) {
-				ofImage image = get_image_from_type(level.get_tile(x, y).get_type());
+				ofImage image = get_image_from_type(game.get_level().get_tile(x, y).get_type());
 				image.draw(pixel_x, pixel_y);
 			}
 
-			if (combat && is_combat_space(x, y)) {
+			if (game.in_combat_mode() && game.is_combat_space(x, y)) {
 				combat_tile.draw(pixel_x, pixel_y);
 			}
 
 			for (auto entity : location) {
 				auto &loc = location.get(entity);
 				if (loc.current_tile.get_coordinate_x() == x && loc.current_tile.get_coordinate_y() == y) {
-					if (registry.has<Enemy>(entity)) {
+					if (game.get_registry().has<Item>(entity) && !game.get_registry().has<InventorySlot>(entity)) {
+						auto &info = items.get(entity);
+						ofImage item_image = get_image_from_item(info.image);
+						item_image.draw(pixel_x, pixel_y);
+						if (loc.current_tile.get_coordinate_x() == game.get_player().get_player_x() && loc.current_tile.get_coordinate_y() == game.get_player().get_player_y()) {
+							press_start_2p.drawString(info.name, 32, 128);
+						}
+					}
+
+
+					if (game.get_registry().has<Enemy>(entity)) {
 						auto &stats = enemies.get(entity);
 						ofImage enemy = get_image(stats.name, stats.direction);
 						enemy.draw(pixel_x, pixel_y);
@@ -123,7 +139,7 @@ void ofApp::draw(){
 
 	//Player display
 	//Player is always displayed in center of screen
-	ofImage player_stance = get_image_from_direction(player.get_turn_direction());
+	ofImage player_stance = get_image_from_direction(game.get_player().get_turn_direction());
 	player_stance.draw(kDisplayCenter, kDisplayCenter);
 
 	//UI Display
@@ -136,7 +152,7 @@ void ofApp::draw(){
 			for (auto entity : location) {
 				auto &loc = location.get(entity);
 				if (loc.current_tile.get_coordinate_x() == x && loc.current_tile.get_coordinate_y() == y) {
-					if (registry.has<Enemy>(entity)) {
+					if (game.get_registry().has<Enemy>(entity)) {
 						auto &stats = enemies.get(entity);
 
 						if (stats.health != stats.total_health) {
@@ -159,50 +175,84 @@ void ofApp::draw(){
 		pixel_y += 128;
 	}
 
-	//Calculates portion of health bar to show, then displays health overlayed by health bar
-	float health_portion = (float)((float)player.get_health() / (float)player.get_total_health());
-	int num_health_strips = health_portion * 29;
-	for (int x = 28; x < 28 + (num_health_strips * 6); x += 6) {
-		health_strip.draw(x, 31);
+	if (game.get_mode() == "default") {
+		//Calculates portion of health bar to show, then displays health overlayed by health bar
+		float health_portion = (float)((float)game.get_player().get_health() / (float)game.get_player().get_total_health());
+		int num_health_strips = health_portion * 29;
+		for (int x = 28; x < 28 + (num_health_strips * 6); x += 6) {
+			health_strip.draw(x, 31);
+		}
+
+		health_bar.draw(16, 0);
 	}
 
-	health_bar.draw(16, 0);
+	if (game.get_mode() == "inventory") {
+		weapon_slot.draw(128, 128);
+		armor_slot.draw(384, 128);
+		magic_slot.draw(640, 128);
+		for (int y = 512; y < 768; y += 128) {
+			for (int x = 256; x < 640; x += 128) {
+				inventory_slot.draw(x, y);
+			}
+		}
+	}
+	
+	
+	
+
+
+
 	
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
 	//Set players current x and y as shorthand for reference
-	int x = player.get_player_x();
-	int y = player.get_player_y();
+	int x = game.get_player().get_player_x();
+	int y = game.get_player().get_player_y();
+
+	//Entering and exiting inventory mode
+	if (key == 'e' && game.get_mode() == "default") {
+		game.set_mode("inventory");
+	} else if (key == 'e' && game.get_mode() == "inventory") {
+		game.set_mode("default");
+	}
+
+
 
 	//When the player moves, check if the direction is valid and then move the player
 	//Then take an enemy action, since it is the enemies' turn
-	if (key == 'w') {
-		player.set_turn_direction("up");
-		if (is_tile_unobstructed(x, y - 1) && !combat) {
-			player.set_current_tile(x, y - 1);
-			enemies_action();
+	if (game.get_mode() != "inventory") {
+		if (key == 'w') {
+			game.get_player().set_turn_direction("up");
+			if (game.is_tile_unobstructed(x, y - 1) && !game.in_combat_mode()) {
+				game.get_player().set_current_tile(x, y - 1);
+				game.enemies_action();
+			}
 		}
-	} else if (key == 'a') {
-		player.set_turn_direction("left");
-		if (is_tile_unobstructed(x - 1, y) && !combat) {
-			player.set_current_tile(x - 1, y);
-			enemies_action();
+		else if (key == 'a') {
+			game.get_player().set_turn_direction("left");
+			if (game.is_tile_unobstructed(x - 1, y) && !game.in_combat_mode()) {
+				game.get_player().set_current_tile(x - 1, y);
+				game.enemies_action();
+			}
 		}
-	} else if (key == 's') {
-		player.set_turn_direction("down");
-		if (is_tile_unobstructed(x, y + 1) && !combat) {
-			player.set_current_tile(x, y + 1);
-			enemies_action();
+		else if (key == 's') {
+			game.get_player().set_turn_direction("down");
+			if (game.is_tile_unobstructed(x, y + 1) && !game.in_combat_mode()) {
+				game.get_player().set_current_tile(x, y + 1);
+				game.enemies_action();
+			}
 		}
-	} else if (key == 'd') {
-		player.set_turn_direction("right");
-		if (is_tile_unobstructed(x + 1, y) && !combat) {
-			player.set_current_tile(x + 1, y);
-			enemies_action();
+		else if (key == 'd') {
+			game.get_player().set_turn_direction("right");
+			if (game.is_tile_unobstructed(x + 1, y) && !game.in_combat_mode()) {
+				game.get_player().set_current_tile(x + 1, y);
+				game.enemies_action();
+			}
 		}
 	}
+	
 }
 
 //--------------------------------------------------------------
@@ -223,18 +273,18 @@ void ofApp::mouseDragged(int x, int y, int button){
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
 	//Right click cycles 'combat' mode which displays what tiles the player can attack from
-	if (button == 2 && !combat) {
-		combat = true;
-	} else if (button == 2 && combat) {
-		combat = false;
+	if (button == 2 && !game.in_combat_mode()) {
+		game.set_mode("combat");
+	} else if (button == 2 && game.in_combat_mode()) {
+		game.set_mode("default");
 	}
 
 	//Left click is the attack button
 	//Checks to make sure the attack is within range and there is an enemy on the clicked tile
-	if (button == 0 && is_combat_space(get_coordinate_from_pixel(x, y)) 
-		&& is_enemy_at_position(get_coordinate_from_pixel(x,y))) {
-		attack_enemy_at_tile(get_coordinate_from_pixel(x, y));
-		enemies_action();
+	if (button == 0 && game.is_combat_space(game.get_coordinate_from_pixel(x, y)) 
+		&& game.is_enemy_at_position(game.get_coordinate_from_pixel(x,y))) {
+		game.attack_enemy_at_tile(game.get_coordinate_from_pixel(x, y));
+		game.enemies_action();
 	}
 }
 
@@ -267,6 +317,10 @@ void ofApp::gotMessage(ofMessage msg) {
 void ofApp::dragEvent(ofDragInfo dragInfo) {
 
 }
+
+
+
+
 
 ofImage ofApp::get_image_from_type(std::string type) {
 	//Gets the ofImage corresponding to the tile type
@@ -335,224 +389,26 @@ ofImage ofApp::get_image(std::string name, std::string direction) {
 	}
 }
 
-//Create the entities
-void ofApp::create_entities() {
-	//The range of enemies to spawn in the level
-	int num_entities = (rand() % 10) + 5;
-	
-	//For the number of entities we want to generate, choose a floor tile to spawn on, and give it a randomy enemy type
-	//Then initialize the stats for that enemy
-	for (int i = 0; i < num_entities; i++) {
-		auto entity = registry.create();
-		registry.assign<Location>(entity, level.get_random_passable_tile());
-		int type = rand() % kEnemyTypes;
-		if (type == 0) {
-			registry.assign<Enemy>(entity, 100, 100, 20, "Crabman", "front");
-		} else if (type == 1) {
-			registry.assign<Enemy>(entity, 40, 40, 10, "Octopus", "front");
-		} else if (type == 2) {
-			registry.assign<Enemy>(entity, 20, 20, 10, "Eel", "front");
-		}
+ofImage ofApp::get_image_from_item(std::string image) {
+	if (image == "dagger") {
+		return dagger;
 	}
-}
-
-//Checks if an enemy is at the current point
-bool ofApp::is_enemy_at_position(int x, int y) {
-	auto locations = registry.view<Location>();
-	for (auto entity : locations) {
-		if (registry.has<Enemy>(entity)) {
-			auto &loc = locations.get(entity);
-			if (loc.current_tile.get_coordinate_x() == x && loc.current_tile.get_coordinate_y() == y) {
-				return true;
-			}
-		}
+	else if (image == "sword") {
+		return gladius;
 	}
-
-	return false;
-}
-
-//Checks if an enemy is at the current point
-bool ofApp::is_enemy_at_position(Coordinate coordinate) {
-	return is_enemy_at_position(coordinate.get_coordinate_x(), coordinate.get_coordinate_y());
-}
-
-
-//Checks if a space is within the player's attack range
-bool ofApp::is_combat_space(int x, int y) {
-	//Shorthand for the player's x and y
-	int player_x = player.get_player_x();
-	int player_y = player.get_player_y();
-
-	//If the tile is immediately above, below, left, or right 
-	if (x == player_x && (y == player_y + 1 || y == player_y - 1)) {
-		return true;
-	} else if (y == player_y && (x == player_x + 1 || x == player_x - 1)) {
-		return true;
+	else if (image == "shield") {
+		return shield;
 	}
-
-	return false;
-}
-
-bool ofApp::is_combat_space(Coordinate coordinate) {
-	return is_combat_space(coordinate.get_coordinate_x(), coordinate.get_coordinate_y());
-}
-
-void ofApp::enemies_action() {
-	Coordinate destination;
-	auto locations = registry.view<Location>();
-	auto stats = registry.view<Enemy>();
-	for (auto entity : locations) {
-		if (registry.has<Enemy>(entity)) {
-			auto &loc = locations.get(entity);
-			auto &dir = stats.get(entity);
-			destination = loc.current_tile;
-			if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) == 1) {
-				attack_player(dir.strength);
-			} else if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) <= 3 && get_euclidean_distance(loc.current_tile, player.get_current_tile()) > 1) {
-				destination = move_enemy_towards_player(loc.current_tile.get_coordinate_x(), loc.current_tile.get_coordinate_y());
-			} else if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) > 3) {
-				destination = move_enemy_randomly(loc.current_tile.get_coordinate_x(), loc.current_tile.get_coordinate_y());
-			}
-			
-			if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) > 1 && (loc.current_tile.get_coordinate_x() != destination.get_coordinate_x()) || loc.current_tile.get_coordinate_y() != destination.get_coordinate_y()) {
-				dir.direction = determine_direction_relatively(loc.current_tile, destination);
-			}
-			else {
-				dir.direction = determine_direction_relatively(loc.current_tile, player.get_current_tile());
-			}
-			loc.current_tile = destination;
-		}
+	else if (image == "orb_1") {
+		return magic_orb_1;
 	}
-}
-
-Coordinate ofApp::move_enemy_randomly(int current_x, int current_y) {
-	//Determine the modifiers for x and y
-	int x = (rand() % 3) - 1; // -1 to 1
-	int y = 0; 
-	if (x == 0) {
-		y = (rand() % 3) - 1; // -1 to 1
+	else if (image == "orb_2") {
+		return magic_orb_2;
 	}
-
-	x += current_x;
-	y += current_y;
-
-	int counter = 0;
-	while (!level.is_valid_coordinate(x, y) || !level.get_tile(x, y).get_passability() || is_enemy_at_position(x, y) || (x == player.get_player_x() && y == player.get_player_y())) {
-		//If 4 attempts have been made (arbitrary number) then just don't move
-		if (counter == 4) {
-			return Coordinate(current_x, current_y);
-		}
-
-		x = current_x;
-		y = current_y;
-
-		x = (rand() % 3) - 1;
-		y = 0;
-		if (x == 0) {
-			y = (rand() % 3) - 1; 
-		}
-
-		x += current_x;
-		y += current_y;
-
-		counter++;
+	else if (image == "orb_3") {
+		return magic_orb_3;
 	}
-	
-	return Coordinate(x, y);
-}
-
-std::string ofApp::determine_direction_relatively(Coordinate start, Coordinate end) {
-	if (end.get_coordinate_x() == start.get_coordinate_x() + 1) {
-		return "right";
-	} else if (end.get_coordinate_x() == start.get_coordinate_x() - 1) {
-		return "left";
-	} else if (end.get_coordinate_y() == start.get_coordinate_y() - 1) {
-		return "up";
-	} else {
-		return "down";
+	else {
+		return random_item_bag;
 	}
-}
-
-
-Coordinate ofApp::get_coordinate_from_pixel(int pixel_x, int pixel_y) {
-	int x = pixel_x / 128;
-	int y = pixel_y / 128;
-	x += (player.get_player_x() - 3);
-	y += (player.get_player_y() - 3);
-
-	return Coordinate(x, y);
-}
-
-void ofApp::attack_enemy_at_tile(Coordinate target) {
-	auto locations = registry.view<Location>();
-	auto stats = registry.view<Enemy>();
-	for (auto entity : locations) {
-		if (registry.has<Enemy>(entity)) {
-			auto &loc = locations.get(entity);
-			if (target.get_coordinate_x() == loc.current_tile.get_coordinate_x() && target.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
-				auto &opponent = stats.get(entity);
-				opponent.health = opponent.health - player.get_strength();
-			}
-		}
-	}
-}
-
-
-
-
-Coordinate ofApp::move_enemy_towards_player(int current_x, int current_y) {
-	int x = current_x;
-	int y = current_y;
-	int distance = get_euclidean_distance(Coordinate(x, y), player.get_current_tile());
-	std::vector<bool> distance_changes;
-	std::vector<Coordinate> new_locations;
-	new_locations.push_back(Coordinate(x + 1, y));
-	new_locations.push_back(Coordinate(x - 1, y));
-	new_locations.push_back(Coordinate(x, y + 1));
-	new_locations.push_back(Coordinate(x, y - 1));
-	new_locations.push_back(Coordinate(x, y));
-	distance_changes.push_back(is_distance_reduced(distance, Coordinate(x + 1, y), player.get_current_tile()));
-	distance_changes.push_back(is_distance_reduced(distance, Coordinate(x - 1, y), player.get_current_tile()));
-	distance_changes.push_back(is_distance_reduced(distance, Coordinate(x, y + 1), player.get_current_tile()));
-	distance_changes.push_back(is_distance_reduced(distance, Coordinate(x, y - 1), player.get_current_tile()));
-	//This last value represents no movement
-	distance_changes.push_back(true);
-	int chosen_value = rand() % distance_changes.size();
-	while (!distance_changes[chosen_value]) {
-		chosen_value = rand() % distance_changes.size();
-	}
-
-	return new_locations[chosen_value];
-}
-
-
-
-bool ofApp::is_distance_reduced(int initial_d, Coordinate new_start, Coordinate end) {
-	int final_distance = get_euclidean_distance(new_start, end);
-	if (final_distance < initial_d && level.is_valid_passable_tile(new_start) 
-		&& !is_enemy_at_position(new_start) 
-		&& (new_start.get_coordinate_x() != player.get_player_x() || new_start.get_coordinate_y() != player.get_player_y())) {
-		return true;
-	}
-
-	return false;
-}
-
-void ofApp::attack_player(int damage) {
-	player.change_health(damage *  -1);
-}
-
-
-//Shorthand utility function for checking during player movement
-bool ofApp::is_tile_unobstructed(int x, int y) {
-	if (level.is_valid_coordinate(x, y) 
-		&& level.get_tile(x, y).get_passability() && !is_enemy_at_position(x, y)) {
-		return true;
-	}
-
-	return false;
-}
-
-bool ofApp::is_tile_unobstructed(Coordinate coordinate) {
-	return is_tile_unobstructed(coordinate.get_coordinate_x(), coordinate.get_coordinate_y());
 }
