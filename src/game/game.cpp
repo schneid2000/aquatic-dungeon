@@ -236,7 +236,7 @@ void Game::attack_enemy_at_tile(Coordinate target) {
 			auto &loc = locations.get(entity);
 			if (target.get_coordinate_x() == loc.current_tile.get_coordinate_x() && target.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
 				auto &opponent = stats.get(entity);
-				opponent.health = opponent.health - player.get_strength();
+				opponent.health = opponent.health - (player.get_strength() + get_modifier(0));
 			}
 		}
 	}
@@ -284,7 +284,11 @@ bool Game::is_distance_reduced(int initial_d, Coordinate new_start, Coordinate e
 }
 
 void Game::attack_player(int damage) {
-	player.change_health(damage *  -1);
+	int health_adjustment = (damage * -1) + get_modifier(1);
+	if (health_adjustment > 0) {
+		health_adjustment = 0;
+	}
+	player.change_health(health_adjustment);
 }
 
 
@@ -435,12 +439,39 @@ void Game::check_to_add_item() {
 	for (auto entity : items) {
 		if (registry.has<Location>(entity) && !registry.has<InventorySlot>(entity)) {
 			auto &loc = locations.get(entity);
+			auto &stats = items.get(entity);
 			if (loc.current_tile.get_coordinate_x() == player.get_player_x()
 				&& loc.current_tile.get_coordinate_y() == player.get_player_y()) {
-				registry.assign<InventorySlot>(entity, player.get_first_empty_slot(), "default");
+				registry.assign<InventorySlot>(entity, player.get_first_empty_slot(), stats.type);
 				registry.replace<Location>(entity, player.coord_of_first_empty_slot());
 				player.occupy_slot(player.get_first_empty_slot());
 			}
 		}
 	}
+}
+
+int Game::get_modifier(int slot) {
+	if (slot > 2 || slot < 0) {
+		return 0;
+	}
+	Coordinate destination = get_coordinate_from_slot(slot);
+	auto inventory_items = registry.view<InventorySlot>();
+	auto locations = registry.view<Location>();
+	auto equipment = registry.view<Equipment>();
+	for (auto item : inventory_items) {
+		auto &loc = locations.get(item);
+		auto &equip_stats = equipment.get(item);
+		if (destination.get_coordinate_x() == loc.current_tile.get_coordinate_x()
+			&& destination.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
+			if (slot == 0) {
+				return equip_stats.melee_modifier;
+			} else if (slot == 1) {
+				return equip_stats.armor_strength;
+			} else if (slot == 2) {
+				return equip_stats.magic_modifier;
+			}
+		}
+	}
+
+	return 0;
 }

@@ -71,7 +71,7 @@ public:
 
 	bool is_tile_unobstructed(int x, int y);
 	bool is_tile_unobstructed(Coordinate coordinate);
-
+	
 
 	int get_slot_from_relative_coordinate(Coordinate coordinate);
 	Coordinate get_coordinate_from_slot(int slot);
@@ -81,5 +81,7 @@ public:
 	std::string get_random_image_name(std::string type);
 
 	void check_to_add_item();
+
+	int get_modifier(int slot);
 
 };

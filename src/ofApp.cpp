@@ -369,15 +369,22 @@ void ofApp::mousePressed(int x, int y, int button){
 			auto item_stats = game.get_registry().view<Item>();
 			for (auto item : inventory_items) {
 				auto &loc = locations.get(item);
+				auto &inventory = inventory_items.get(item);
 				std::cout << "selected slot" << game.get_player().get_selected_slot() << std::endl;
 				if (game.get_coordinate_from_slot(game.get_player().get_selected_slot()).get_coordinate_x() == loc.current_tile.get_coordinate_x()
 					&& game.get_coordinate_from_slot(game.get_player().get_selected_slot()).get_coordinate_y() == loc.current_tile.get_coordinate_y() 
 					&& game.get_slot_from_relative_coordinate(current) != -1) {
-					game.get_registry().replace<Location>(item, current);
-					game.get_player().occupy_slot(game.get_slot_from_relative_coordinate(current));
-					game.get_player().free_slot(game.get_player().get_selected_slot());
-					game.get_player().set_selected_slot(-1);
-					break;
+					if (game.get_slot_from_relative_coordinate(current) == 0 && inventory.type_restriction == "Weapon"
+						|| game.get_slot_from_relative_coordinate(current) == 1 && inventory.type_restriction == "Armor"
+						|| game.get_slot_from_relative_coordinate(current) == 2 && inventory.type_restriction == "Magic"
+						|| game.get_slot_from_relative_coordinate(current) > 2) {
+						game.get_registry().replace<Location>(item, current);
+						game.get_player().occupy_slot(game.get_slot_from_relative_coordinate(current));
+						game.get_player().free_slot(game.get_player().get_selected_slot());
+						game.get_player().set_selected_slot(-1);
+						break;
+					}
+					
 				}
 			}
 		}
