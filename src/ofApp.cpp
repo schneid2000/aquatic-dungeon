@@ -187,9 +187,26 @@ void ofApp::draw(){
 	}
 
 	if (game.get_mode() == "inventory") {
-		weapon_slot.draw(128, 128);
-		armor_slot.draw(384, 128);
-		magic_slot.draw(640, 128);
+		for (int x = 128; x < 768; x += 256) {
+			if (x == 128) {
+				weapon_slot.draw(x, 128);
+			}
+			else if (x == 384) {
+				armor_slot.draw(x, 128);
+			}
+			else if (x == 640) {
+				magic_slot.draw(x, 128);
+			}
+
+			if (game.get_player().get_selected_slot() != -1) {
+				Coordinate current = game.get_coordinate_from_slot(game.get_player().get_selected_slot());
+				if (current.get_coordinate_x() * 128 == x && current.get_coordinate_y() * 128 == 128) {
+					selected_inventory_slot.draw(x, 128);
+				}
+			}
+
+		}
+
 		for (int y = 512; y < 768; y += 128) {
 			for (int x = 256; x < 640; x += 128) {
 				inventory_slot.draw(x, y);
@@ -338,16 +355,33 @@ void ofApp::mousePressed(int x, int y, int button){
 			if (current.get_coordinate_x() == loc.current_tile.get_coordinate_x()
 				&& current.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
 				game.get_player().set_selected_slot(game.get_slot_from_relative_coordinate(current));
+				std::cout << game.get_player().get_selected_slot() << std::endl;
 			}
 		}
-	}
-	else if (button == 0 && game.get_mode() == "inventory" && game.get_player().get_selected_slot() != -1) {
+	} else if (button == 0 && game.get_mode() == "inventory" && game.get_player().get_selected_slot() != -1) {
 		Coordinate current = game.get_relative_coordinate_from_pixel(x, y);
 		Coordinate slot = game.get_coordinate_from_slot(game.get_player().get_selected_slot());
 		if (current.get_coordinate_x() == slot.get_coordinate_x() && current.get_coordinate_y() == slot.get_coordinate_y()) {
 			game.get_player().set_selected_slot(-1);
+		} else if (game.get_slot_from_relative_coordinate(current) != -1 && current.get_coordinate_x() != slot.get_coordinate_x() || current.get_coordinate_y() != slot.get_coordinate_y()) {
+			auto inventory_items = game.get_registry().view<InventorySlot>();
+			auto locations = game.get_registry().view<Location>();
+			auto item_stats = game.get_registry().view<Item>();
+			for (auto item : inventory_items) {
+				auto &loc = locations.get(item);
+				std::cout << "selected slot" << game.get_player().get_selected_slot() << std::endl;
+				if (game.get_coordinate_from_slot(game.get_player().get_selected_slot()).get_coordinate_x() == loc.current_tile.get_coordinate_x()
+					&& game.get_coordinate_from_slot(game.get_player().get_selected_slot()).get_coordinate_y() == loc.current_tile.get_coordinate_y() 
+					&& game.get_slot_from_relative_coordinate(current) != -1) {
+					game.get_registry().replace<Location>(item, current);
+					game.get_player().occupy_slot(game.get_slot_from_relative_coordinate(current));
+					game.get_player().free_slot(game.get_player().get_selected_slot());
+					game.get_player().set_selected_slot(-1);
+					break;
+				}
+			}
 		}
-	}
+	} 
 }
 
 //--------------------------------------------------------------

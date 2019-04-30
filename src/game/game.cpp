@@ -306,12 +306,16 @@ bool Game::is_tile_unobstructed(Coordinate coordinate) {
 
 int Game::get_slot_from_relative_coordinate(Coordinate coordinate) {
 	if (coordinate.get_coordinate_y() == 1) {
-		return coordinate.get_coordinate_x() - ((coordinate.get_coordinate_x() % 2) + 1);
-	} else if (coordinate.get_coordinate_y() == 4) {
+		std::cout << "x " << coordinate.get_coordinate_x() << std::endl;
+		std::cout << "remainder " << coordinate.get_coordinate_x() % 2 << std::endl;
+		return (coordinate.get_coordinate_x() - 1) / 2;
+	} else if (coordinate.get_coordinate_y() == 4 && coordinate.get_coordinate_x() >= 2 && coordinate.get_coordinate_x() < 5) {
 		return coordinate.get_coordinate_x() + 1;
-	} else if (coordinate.get_coordinate_y() == 5) {
+	} else if (coordinate.get_coordinate_y() == 5 && coordinate.get_coordinate_x() >= 2 && coordinate.get_coordinate_x() < 5) {
 		return coordinate.get_coordinate_x() + 4;
 	}
+
+	return -1;
 }
 
 Coordinate Game::get_coordinate_from_slot(int slot) {
@@ -330,13 +334,13 @@ Coordinate Game::get_coordinate_from_slot(int slot) {
 int Game::get_random_value_by_type(std::string type, std::string compare_type) {
 	if (type == compare_type) {
 		if (type == "Armor") {
-			return (rand() % 10);
+			return ((rand() % 10) + 1);
 		}
 		else if (type == "Weapon") {
-			return (rand() % 20);
+			return ((rand() % 20) + 1);
 		}
 		else {
-			return (rand() % 10);
+			return ((rand() % 10) + 1);
 		}
 	}
 	
