@@ -11,6 +11,7 @@
 static const int kDisplaySize = 7;
 static const int kCardinalDirections = 4;
 static const int kDisplayCenter = 384;
+static const int kTileSize = 128;
 
 
 
@@ -22,6 +23,7 @@ class ofApp : public ofBaseApp{
 	ofImage ceiling;
 	ofImage floor;
 	ofImage boss_wall;
+	ofImage boss_spawn;
 	ofImage player_front;
 	ofImage player_left;
 	ofImage player_right;
@@ -36,6 +38,7 @@ class ofApp : public ofBaseApp{
 	ofImage weapon_slot;
 	ofImage magic_slot;
 	ofImage armor_slot;
+	ofImage boss_health_bar;
 	ofImage crabman_front;
 	ofImage crabman_left;
 	ofImage crabman_right;
@@ -48,6 +51,7 @@ class ofApp : public ofBaseApp{
 	ofImage eel_left;
 	ofImage eel_right;
 	ofImage eel_back;
+	ofImage cuttlefish;
 	ofImage dagger;
 	ofImage gladius;
 	ofImage health_potion;
@@ -88,6 +92,9 @@ class ofApp : public ofBaseApp{
 
 		//Gets the image for an item type
 		ofImage get_image_from_item(std::string image);
+
+		//Gets the image for a boss type
+		ofImage get_image_from_boss(std::string name);
 
 		
 };

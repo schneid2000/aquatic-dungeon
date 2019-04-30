@@ -7,6 +7,7 @@ Game::Game() {
 	level.instantiate_level();
 	player = Player(level.get_start_tile(), 100, 20);
 	mode = "default";
+	boss_mode = false;
 	create_entities();
 }
 
@@ -25,6 +26,10 @@ entt::DefaultRegistry& Game::get_registry() {
 
 std::string Game::get_mode() {
 	return mode;
+}
+
+bool Game::is_boss_mode() {
+	return boss_mode;
 }
 
 //Checks if the player is in combat mode
@@ -104,6 +109,7 @@ bool Game::is_combat_space(int x, int y) {
 	return false;
 }
 
+//Checks for a combat space given a coordinate
 bool Game::is_combat_space(Coordinate coordinate) {
 	return is_combat_space(coordinate.get_coordinate_x(), coordinate.get_coordinate_y());
 }
@@ -195,10 +201,13 @@ Coordinate Game::move_enemy_randomly(int current_x, int current_y) {
 }
 
 
+//Move an enemy randomly given their current position as a coordinate
 Coordinate Game::move_enemy_randomly(Coordinate coordinate) {
 	return move_enemy_randomly(coordinate.get_coordinate_x(), coordinate.get_coordinate_y());
 }
 
+
+//Determine what direction an enemy should face (for display)
 std::string Game::determine_direction_relatively(Coordinate start, Coordinate end) {
 	if (end.get_coordinate_x() == start.get_coordinate_x() + 1) {
 		return "right";
@@ -212,6 +221,7 @@ std::string Game::determine_direction_relatively(Coordinate start, Coordinate en
 }
 
 
+//Get the specific map coordinate from where the user clicked
 Coordinate Game::get_coordinate_from_pixel(int pixel_x, int pixel_y) {
 	int x = pixel_x / 128;
 	int y = pixel_y / 128;
@@ -221,12 +231,16 @@ Coordinate Game::get_coordinate_from_pixel(int pixel_x, int pixel_y) {
 	return Coordinate(x, y);
 }
 
+
+//Get the relative coordinate based on where the user clicked
 Coordinate Game::get_relative_coordinate_from_pixel(int pixel_x, int pixel_y) {
 	int x = pixel_x / 128;
 	int y = pixel_y / 128;
 
 	return Coordinate(x, y);
 }
+
+
 
 void Game::attack_enemy_at_tile(Coordinate target) {
 	auto locations = registry.view<Location>();
@@ -486,11 +500,9 @@ int Game::get_modifier(int slot) {
 				&& destination.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
 				if (slot == 0) {
 					return equip_stats.melee_modifier;
-				}
-				else if (slot == 1) {
+				} else if (slot == 1) {
 					return equip_stats.armor_strength;
-				}
-				else if (slot == 2) {
+				} else if (slot == 2) {
 					return equip_stats.magic_modifier;
 				}
 			}
@@ -498,4 +510,46 @@ int Game::get_modifier(int slot) {
 	}
 
 	return 0;
+}
+
+
+
+void Game::attempt_boss_spawn() {
+	if (level.get_tile(player.get_current_tile()).get_type() == "boss_spawn") {
+		boss_mode = true;
+		//Replace the boss spawn tile with a floor tile
+		level.set_tile(player.get_player_x(), player.get_player_y(), Tile(true, "floor"));
+
+		//Wall off the entrances to the boss room and destroy any entities that were there
+		for (int y = player.get_player_y() - 3; y < player.get_player_y() + 4; y++) {
+			for (int x = player.get_player_x() - 3; x < player.get_player_x() + 4; x++) {
+				if (level.is_valid_coordinate(x, y) && level.get_tile(x, y).get_type() == "boss_gateway") {
+					auto locations = registry.view<Location>();
+					for (auto entity : locations) {
+						auto &loc = locations.get(entity);
+						if ((registry.has<Item>(entity) && !registry.has<InventorySlot>(entity)) || registry.has<Enemy>(entity) 
+							&& loc.current_tile.get_coordinate_x() == x && loc.current_tile.get_coordinate_y() == y) {
+							registry.destroy(entity);
+						}
+					}
+					level.set_tile(x, y, Tile(false, "boss_wall"));
+				}
+			}
+		}
+
+		//Select a random boss (although there's only 1 type right now)
+		int boss = rand() % kBossTypes;
+		
+		//0 - Cuttlefish
+		if (boss == 0) {
+			auto boss = registry.create();
+			registry.assign<Boss>(boss, Coordinate(player.get_player_x(), player.get_player_y() - 1), "Cuttlefish", 200, 200, 50);
+			level.set_tile(player.get_player_x(), player.get_player_y() - 1, Tile(false, "floor"));
+			level.set_tile(player.get_player_x(), player.get_player_y() - 2, Tile(false, "floor"));
+		}
+	}
+
+
+
+
 }

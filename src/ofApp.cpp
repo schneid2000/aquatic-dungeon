@@ -13,6 +13,7 @@ void ofApp::setup(){
 	floor.load("graphics/Tiles/floor.png"); 
 	wall.load("graphics/Tiles/wall.png");
 	boss_wall.load("graphics/Tiles/boss_wall.png");
+	boss_spawn.load("graphics/Tiles/boss_spawn.png");
 	
 	//Player graphics
 	player_front.load("graphics/Sprites/Player/cedar_front.png");
@@ -31,6 +32,7 @@ void ofApp::setup(){
 	weapon_slot.load("graphics/UI/inventory_slot_weapon.png");
 	armor_slot.load("graphics/UI/inventory_slot_armor.png");
 	magic_slot.load("graphics/UI/inventory_slot_magic.png");
+	boss_health_bar.load("graphics/UI/boss_health_bar.png");
 
 
 	//Enemy graphics
@@ -46,6 +48,8 @@ void ofApp::setup(){
 	eel_left.load("graphics/Sprites/Eel/eel_left.png");
 	eel_right.load("graphics/Sprites/Eel/eel_right.png");
 	eel_back.load("graphics/Sprites/Eel/eel_back.png");
+
+	cuttlefish.load("graphics/Sprites/Cuttlefish/cuttlefish.png");
 
 	
 	//Item graphics
@@ -71,6 +75,7 @@ void ofApp::update(){
 	}
 
 	game.check_to_add_item();
+	game.attempt_boss_spawn();
 }
 
 //--------------------------------------------------------------
@@ -116,6 +121,8 @@ void ofApp::draw(){
 				}
 			}
 
+			
+
 
 			pixel_x += 128;
 		}
@@ -123,13 +130,40 @@ void ofApp::draw(){
 		pixel_y += 128;
 	}
 
-	
+	//Boss display
+	if (game.is_boss_mode()) {
+		pixel_x = 0;
+		pixel_y = 0;
+
+		for (int y = display_y; y < display_y + kDisplaySize; y++) {
+			for (int x = display_x; x < display_x + kDisplaySize; x++) {
+				if (game.is_boss_mode()) {
+					auto bosses = game.get_registry().view<Boss>();
+					//Should usually be 1
+					for (auto boss : bosses) {
+						auto &stats = bosses.get(boss);
+						if (stats.start.get_coordinate_x() == x && stats.start.get_coordinate_y() == y) {
+							ofImage boss_image = get_image_from_boss(stats.name);
+							boss_image.draw(pixel_x - kTileSize, pixel_y - kTileSize);
+						}
+					}
+				}
+
+
+				pixel_x += 128;
+			}
+			pixel_x = 0;
+			pixel_y += 128;
+		}
+	}
 
 
 	//Player display
 	//Player is always displayed in center of screen
 	ofImage player_stance = get_image_from_direction(game.get_player().get_turn_direction());
 	player_stance.draw(kDisplayCenter, kDisplayCenter);
+
+	
 
 	//UI Display
 
@@ -157,12 +191,12 @@ void ofApp::draw(){
 				}
 			}
 
-
 			pixel_x += 128;
 		}
 		pixel_x = 0;
 		pixel_y += 128;
 	}
+
 
 	if (game.get_mode() == "default") {
 		//Calculates portion of health bar to show, then displays health overlayed by health bar
@@ -175,40 +209,61 @@ void ofApp::draw(){
 		health_bar.draw(16, 0);
 	}
 
+	//Display boss health if a boss fight has started
+	if (game.is_boss_mode()) {
+		auto bosses = game.get_registry().view<Boss>();
+		//Should usually be 1
+		for (auto boss : bosses) {
+			auto &stats = bosses.get(boss);
+			float health_portion = (float)((float)stats.current_health / (float)stats.total_health);
+			int num_health_strips = health_portion * 58;
+			for (int x = 862; x > 862 - (num_health_strips * 6); x -= 6) {
+				health_strip.draw(x, 31);
+			}
+
+			boss_health_bar.draw(500, 0);
+			if (stats.name == "Cuttlefish") {
+				press_start_2p.drawString(stats.name, 640, 128);
+			}
+			
+		}
+	}
+
 	if (game.get_mode() == "inventory") {
-		for (int x = 128; x < 768; x += 256) {
-			if (x == 128) {
-				weapon_slot.draw(x, 128);
+		//Display the top inventory slots, and overlay the selected slot if needed
+		for (int x = kTileSize; x < kTileSize * 6; x += (kTileSize * 2)) {
+			if (x == kTileSize) {
+				weapon_slot.draw(x, kTileSize);
 			}
-			else if (x == 384) {
-				armor_slot.draw(x, 128);
+			else if (x == 3 * kTileSize) {
+				armor_slot.draw(x, kTileSize);
 			}
-			else if (x == 640) {
-				magic_slot.draw(x, 128);
+			else if (x == 5 * kTileSize) {
+				magic_slot.draw(x, kTileSize);
 			}
 
 			if (game.get_player().get_selected_slot() != -1) {
 				Coordinate current = game.get_coordinate_from_slot(game.get_player().get_selected_slot());
-				if (current.get_coordinate_x() * 128 == x && current.get_coordinate_y() * 128 == 128) {
-					selected_inventory_slot.draw(x, 128);
+				if (current.get_coordinate_x() * kTileSize == x && current.get_coordinate_y() * kTileSize == kTileSize) {
+					selected_inventory_slot.draw(x, kTileSize);
 				}
 			}
 
 		}
-
-		for (int y = 512; y < 768; y += 128) {
-			for (int x = 256; x < 640; x += 128) {
+		//Display the lower inventory slots, and overlay the selected slot if needed
+		for (int y = 4 * kTileSize; y < 6 * kTileSize; y += kTileSize) {
+			for (int x = 2 * kTileSize; x < 5 * kTileSize; x += kTileSize) {
 				inventory_slot.draw(x, y);
 				if (game.get_player().get_selected_slot() != -1) {
 					Coordinate current = game.get_coordinate_from_slot(game.get_player().get_selected_slot());
-					if (current.get_coordinate_x() * 128 == x && current.get_coordinate_y() * 128 == y) {
+					if (current.get_coordinate_x() * kTileSize == x && current.get_coordinate_y() * kTileSize == y) {
 						selected_inventory_slot.draw(x, y);
 					}
 				}
 				
 			}
 		}
-
+		//Display the items in the inventory
 		auto locations = game.get_registry().view<Location>();
 		auto inventory_items = game.get_registry().view<InventorySlot>();
 		auto item_stats = game.get_registry().view<Item>();
@@ -435,13 +490,15 @@ ofImage ofApp::get_image_from_type(std::string type) {
 		return bridge_h;
 	} else if (type == "water") {
 		return water;
-	} else if (type == "floor" || type == "boss_spawn"
+	} else if (type == "floor"
 		|| type == "boss_gateway" || type == "no_spawn_floor") {
 		return floor;
 	} else if (type == "wall") {
 		return wall;
 	} else if (type == "boss_wall") {
 		return boss_wall;
+	} else if (type == "boss_spawn") {
+		return boss_spawn;
 	} else {
 		return ceiling;
 	}
@@ -517,6 +574,16 @@ ofImage ofApp::get_image_from_item(std::string image) {
 		return health_potion;
 	}
 	else {
+		return random_item_bag;
+	}
+}
+
+ofImage ofApp::get_image_from_boss(std::string name) {
+	if (name == "Cuttlefish") {
+		return cuttlefish;
+	}
+	else {
+		//Name should have an assigned image
 		return random_item_bag;
 	}
 }
