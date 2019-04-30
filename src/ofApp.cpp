@@ -70,17 +70,6 @@ void ofApp::update(){
 		std::exit(0);
 	}
 
-	auto stats = game.get_registry().view<Enemy>();
-	for (auto entity : stats) {
-		auto &opponent = stats.get(entity);
-		if (opponent.health <= 0) {
-			game.get_registry().remove<Enemy>(entity);
-			std::string type = game.get_random_item_type();
-			game.get_registry().assign<Item>(entity, game.generate_random_name(type), type, game.get_random_image_name(type));
-			game.get_registry().assign<Equipment>(entity, game.get_random_value_by_type(type, "Weapon"), game.get_random_value_by_type(type, "Armor"), game.get_random_value_by_type(type, "Magic"));
-		}
-	}
-
 	game.check_to_add_item();
 }
 
@@ -355,13 +344,26 @@ void ofApp::mousePressed(int x, int y, int button){
 			if (current.get_coordinate_x() == loc.current_tile.get_coordinate_x()
 				&& current.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
 				game.get_player().set_selected_slot(game.get_slot_from_relative_coordinate(current));
-				std::cout << game.get_player().get_selected_slot() << std::endl;
 			}
 		}
 	} else if (button == 0 && game.get_mode() == "inventory" && game.get_player().get_selected_slot() != -1) {
 		Coordinate current = game.get_relative_coordinate_from_pixel(x, y);
 		Coordinate slot = game.get_coordinate_from_slot(game.get_player().get_selected_slot());
 		if (current.get_coordinate_x() == slot.get_coordinate_x() && current.get_coordinate_y() == slot.get_coordinate_y()) {
+			auto inventory_items = game.get_registry().view<InventorySlot>();
+			auto locations = game.get_registry().view<Location>();
+			auto item_stats = game.get_registry().view<Item>();
+			for (auto item : inventory_items) {
+				auto &loc = locations.get(item);
+				auto &stats = item_stats.get(item);
+				if (stats.type == "Healing" && current.get_coordinate_x() == loc.current_tile.get_coordinate_x() && current.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
+					auto healing = game.get_registry().view<Healing>();
+					auto &health = healing.get(item);
+					game.get_player().change_health(health.health);
+					game.get_registry().destroy(item);
+					game.get_player().free_slot(game.get_slot_from_relative_coordinate(current));
+				}
+			}
 			game.get_player().set_selected_slot(-1);
 		} else if (game.get_slot_from_relative_coordinate(current) != -1 && current.get_coordinate_x() != slot.get_coordinate_x() || current.get_coordinate_y() != slot.get_coordinate_y()) {
 			auto inventory_items = game.get_registry().view<InventorySlot>();
@@ -370,14 +372,14 @@ void ofApp::mousePressed(int x, int y, int button){
 			for (auto item : inventory_items) {
 				auto &loc = locations.get(item);
 				auto &inventory = inventory_items.get(item);
-				std::cout << "selected slot" << game.get_player().get_selected_slot() << std::endl;
 				if (game.get_coordinate_from_slot(game.get_player().get_selected_slot()).get_coordinate_x() == loc.current_tile.get_coordinate_x()
 					&& game.get_coordinate_from_slot(game.get_player().get_selected_slot()).get_coordinate_y() == loc.current_tile.get_coordinate_y() 
 					&& game.get_slot_from_relative_coordinate(current) != -1) {
 					if (game.get_slot_from_relative_coordinate(current) == 0 && inventory.type_restriction == "Weapon"
 						|| game.get_slot_from_relative_coordinate(current) == 1 && inventory.type_restriction == "Armor"
 						|| game.get_slot_from_relative_coordinate(current) == 2 && inventory.type_restriction == "Magic"
-						|| game.get_slot_from_relative_coordinate(current) > 2) {
+						|| game.get_slot_from_relative_coordinate(current) > 2
+						&& game.get_player().slot_is_empty(game.get_slot_from_relative_coordinate(current))) {
 						game.get_registry().replace<Location>(item, current);
 						game.get_player().occupy_slot(game.get_slot_from_relative_coordinate(current));
 						game.get_player().free_slot(game.get_player().get_selected_slot());
@@ -510,6 +512,9 @@ ofImage ofApp::get_image_from_item(std::string image) {
 	}
 	else if (image == "orb_3") {
 		return magic_orb_3;
+	}
+	else if (image == "healing_potion") {
+		return health_potion;
 	}
 	else {
 		return random_item_bag;

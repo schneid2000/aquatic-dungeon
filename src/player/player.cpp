@@ -51,7 +51,13 @@ int Player::get_strength() {
 }
 
 void Player::change_health(int value) {
-	health += value;
+	if (health + value > total_health) {
+		health = total_health;
+	}
+	else {
+		health += value;
+	}
+	
 }
 
 //Gets the direction the player turned in

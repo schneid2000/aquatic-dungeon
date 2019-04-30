@@ -6,7 +6,7 @@
 #include <entt/entt.hpp>
 
 static const int kEnemyTypes = 3;
-static const int kItemTypes = 3; //Armor items, Magic items, Weapons
+static const int kItemTypes = 5; //Armor items, Magic items, Weapons, Healing items, Normal items
 static const int kMinEntities = 6; //The actual value this represents will be 1 less
 static const int kMaxAdditionalEntities = 10; //The actual value this represents will be 1 less
 

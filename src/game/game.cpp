@@ -237,6 +237,17 @@ void Game::attack_enemy_at_tile(Coordinate target) {
 			if (target.get_coordinate_x() == loc.current_tile.get_coordinate_x() && target.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
 				auto &opponent = stats.get(entity);
 				opponent.health = opponent.health - (player.get_strength() + get_modifier(0));
+				if (opponent.health <= 0) {
+					get_registry().remove<Enemy>(entity);
+					std::string type = get_random_item_type();
+					get_registry().assign<Item>(entity, generate_random_name(type), type, get_random_image_name(type));
+					if (type == "Healing") {
+						registry.assign<Healing>(entity, 50);
+					}
+					else {
+						get_registry().assign<Equipment>(entity, get_random_value_by_type(type, "Weapon"), get_random_value_by_type(type, "Armor"), get_random_value_by_type(type, "Magic"));
+					}
+				}
 			}
 		}
 	}
@@ -310,8 +321,6 @@ bool Game::is_tile_unobstructed(Coordinate coordinate) {
 
 int Game::get_slot_from_relative_coordinate(Coordinate coordinate) {
 	if (coordinate.get_coordinate_y() == 1) {
-		std::cout << "x " << coordinate.get_coordinate_x() << std::endl;
-		std::cout << "remainder " << coordinate.get_coordinate_x() % 2 << std::endl;
 		return (coordinate.get_coordinate_x() - 1) / 2;
 	} else if (coordinate.get_coordinate_y() == 4 && coordinate.get_coordinate_x() >= 2 && coordinate.get_coordinate_x() < 5) {
 		return coordinate.get_coordinate_x() + 1;
@@ -358,13 +367,19 @@ std::string Game::get_random_item_type() {
 		return "Armor";
 	} else if (type == 1) {
 		return "Magic";
-	} else {
+	} else if (type == 2) {
 		return "Weapon";
-	}
+	} else {
+		return "Healing";
+	} 
 }
 
 
 std::string Game::generate_random_name(std::string type) {
+	if (type == "Healing") {
+		return "Healing Potion";
+	}
+
 	//Constant sizes for the prefixes, suffixes, and names for random selection
 	const int prefix_size = 15;
 	const int suffix_size = 6;
@@ -428,12 +443,17 @@ std::string Game::get_random_image_name(std::string type) {
 	} else if (type == "Weapon") {
 		std::string weapon_names[kWeaponImages] = { "dagger", "sword" };
 		return weapon_names[rand() % kWeaponImages];
+	} else if (type == "Healing") {
+		return "healing_potion";
 	} else {
 		return "random_item_bag";
 	}
 }
 
 void Game::check_to_add_item() {
+	if (player.is_inventory_full()) {
+		return;
+	}
 	auto items = registry.view<Item>();
 	auto locations = registry.view<Location>();
 	for (auto entity : items) {
@@ -460,15 +480,19 @@ int Game::get_modifier(int slot) {
 	auto equipment = registry.view<Equipment>();
 	for (auto item : inventory_items) {
 		auto &loc = locations.get(item);
-		auto &equip_stats = equipment.get(item);
-		if (destination.get_coordinate_x() == loc.current_tile.get_coordinate_x()
-			&& destination.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
-			if (slot == 0) {
-				return equip_stats.melee_modifier;
-			} else if (slot == 1) {
-				return equip_stats.armor_strength;
-			} else if (slot == 2) {
-				return equip_stats.magic_modifier;
+		if (registry.has<Equipment>(item)) {
+			auto &equip_stats = equipment.get(item);
+			if (destination.get_coordinate_x() == loc.current_tile.get_coordinate_x()
+				&& destination.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
+				if (slot == 0) {
+					return equip_stats.melee_modifier;
+				}
+				else if (slot == 1) {
+					return equip_stats.armor_strength;
+				}
+				else if (slot == 2) {
+					return equip_stats.magic_modifier;
+				}
 			}
 		}
 	}
