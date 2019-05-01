@@ -24,6 +24,12 @@ class ofApp : public ofBaseApp{
 	ofImage floor;
 	ofImage boss_wall;
 	ofImage boss_spawn;
+	ofImage cuttle_attack_1_v;
+	ofImage cuttle_attack_1_h;
+	ofImage cuttle_attack_2_v;
+	ofImage cuttle_attack_2_h;
+	ofImage cuttle_attack_3_v;
+	ofImage cuttle_attack_3_h;
 	ofImage player_front;
 	ofImage player_left;
 	ofImage player_right;

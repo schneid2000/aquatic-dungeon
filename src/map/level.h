@@ -62,9 +62,11 @@ public:
 	//Getter for the player's spawn point
 	Coordinate get_start_tile();
 
+	//Returns true if the coordinate can be used (is in the map)
 	bool is_valid_coordinate(int x, int y);
 	bool is_valid_coordinate(Coordinate coordinate);
 
+	//Returns true if the tile at the coordinate is valid and passable
 	bool is_valid_passable_tile(int x, int y);
 	bool is_valid_passable_tile(Coordinate coordinate);
 
@@ -84,13 +86,24 @@ public:
 	//Creates a hall in a specified direction
 	void create_hall_in_direction(Coordinate current_tile, bool up_or_right, bool opposite);
 
+	//Get the percent of passable tiles out of the level's dimensions
 	float percent_passable_tiles();
 
+	//Fill the level with rooms, hallways, and a boss room
 	void instantiate_level();
 
+	//Find a path from the spawn to the boss room
 	bool path_to_gateway();
 	bool check_for_path(Coordinate search_center);
+
+	//Returns true if a tile is in the path_tiles vector
 	bool seen_tile(Coordinate coordinate);
 
+	//Clears out the level (used for repeated instantiation)
 	void clear();
+
+	//Gets a random passable tile in a certain (square, NOT circular) radius from the center coordinate
+	//If there is no such tile, it will return the search center as a coordinate
+	Coordinate get_random_passable_tile_in_radius(int x_center, int y_center, int radius);
+	Coordinate get_random_passable_tile_in_radius(Coordinate center, int radius);
 };

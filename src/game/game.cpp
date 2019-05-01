@@ -160,6 +160,14 @@ void Game::enemies_action() {
 		}
 		loc.current_tile = destination;
 	}
+
+	if (boss_mode) {
+		auto bosses = registry.view<Boss>();
+		for (auto boss : bosses) {
+			auto &boss_stats = bosses.get(boss);
+			boss_action(boss_stats.name);
+		}
+	}
 }
 
 
@@ -518,7 +526,7 @@ void Game::attempt_boss_spawn() {
 	if (level.get_tile(player.get_current_tile()).get_type() == "boss_spawn") {
 		boss_mode = true;
 		//Replace the boss spawn tile with a floor tile
-		level.set_tile(player.get_player_x(), player.get_player_y(), Tile(true, "floor"));
+		level.set_tile(player.get_player_x(), player.get_player_y(), Tile(true, "no_spawn_floor"));
 
 		//Wall off the entrances to the boss room and destroy any entities that were there
 		for (int y = player.get_player_y() - 3; y < player.get_player_y() + 4; y++) {
@@ -544,12 +552,121 @@ void Game::attempt_boss_spawn() {
 		if (boss == 0) {
 			auto boss = registry.create();
 			registry.assign<Boss>(boss, Coordinate(player.get_player_x(), player.get_player_y() - 1), "Cuttlefish", 200, 200, 50);
-			level.set_tile(player.get_player_x(), player.get_player_y() - 1, Tile(false, "floor"));
-			level.set_tile(player.get_player_x(), player.get_player_y() - 2, Tile(false, "floor"));
+			level.set_tile(player.get_player_x(), player.get_player_y() - 1, Tile(false, "no_spawn_floor"));
+			level.set_tile(player.get_player_x(), player.get_player_y() - 2, Tile(false, "no_spawn_floor"));
 		}
 	}
 
 
 
 
+}
+
+//Takes a 'turn' for bosses given the name of the boss
+void Game::boss_action(std::string name) {
+	auto &bosses = registry.view<Boss>();
+	for (auto boss : bosses) {
+		auto &boss_stats = bosses.get(boss);
+		if (name == boss_stats.name && name == "Cuttlefish") {
+			update_arms_in_radius(boss_stats.start, 3, boss_stats.strength);
+			spread_from_center(level.get_random_passable_tile_in_radius(boss_stats.start, 3), 5);
+		}
+	}
+	
+}
+
+void Game::spread_from_center(Coordinate center, int distance) {
+	int attempts = 0;
+	Coordinate current = Coordinate(center.get_coordinate_x(), center.get_coordinate_y());
+	std::string direction = orient_towards_player(center);
+	int x_modifier = 0;
+	int y_modifier = 0;
+	if (direction == "right") {
+		x_modifier = 1;
+	}
+	else if (direction == "left") {
+		x_modifier = -1;
+	}
+	else if (direction == "up") {
+		y_modifier = -1;
+	}
+	else if (direction == "down") {
+		y_modifier = 1;
+	}
+	for (int i = 0; i < distance; i++) {
+		if (level.is_valid_passable_tile(current)) {
+			if ((direction == "up" || direction == "down") && level.get_tile(current).get_type() == "no_spawn_floor") {
+				level.set_tile(current.get_coordinate_x(), current.get_coordinate_y(), Tile(true, "arm_1_v"));
+			}
+
+			if ((direction == "left" || direction == "right") && level.get_tile(current).get_type() == "no_spawn_floor") {
+				level.set_tile(current.get_coordinate_x(), current.get_coordinate_y(), Tile(true, "arm_1_h"));
+			}
+
+			current = Coordinate(current.get_coordinate_x() + x_modifier, current.get_coordinate_y() + y_modifier);
+			
+		}
+	}
+
+	
+}
+
+
+std::string Game::orient_towards_player(Coordinate center) {
+	int y_distance = center.get_coordinate_y() - player.get_player_y();
+	int x_distance = center.get_coordinate_x() - player.get_player_x();
+	if (x_distance < 0) {
+		x_distance *= -1;
+	}
+	if (y_distance < 0) {
+		y_distance *= -1;
+	}
+	if (y_distance < x_distance) {
+		if (center.get_coordinate_x() > player.get_player_x()) {
+			return "left";
+		} else if (center.get_coordinate_x() <= player.get_player_x()) {
+			return "right";
+		}
+	} else {
+		if (center.get_coordinate_y() > player.get_player_y()) {
+			return "up";
+		} else if (center.get_coordinate_y() <= player.get_player_y()) {
+			return "down";
+		}
+	}
+
+	if (x_distance == y_distance) {
+		return "right";
+	}
+}
+
+
+void Game::update_arms_in_radius(Coordinate center, int radius, int strength) {
+	for (int y = center.get_coordinate_y() - radius; y <= center.get_coordinate_y() + radius; y++) {
+		for (int x = center.get_coordinate_x() - radius; x <= center.get_coordinate_x() + radius; x++) {
+			if (level.is_valid_coordinate(x, y)) {
+				if (level.get_tile(x, y).get_type() == "arm_1_v") {
+					level.set_tile(x, y, Tile(true, "arm_2_v"));
+				} else if (level.get_tile(x, y).get_type() == "arm_1_h") {
+					level.set_tile(x, y, Tile(true, "arm_2_h"));
+				} else if (level.get_tile(x, y).get_type() == "arm_2_v") {
+					if (x == player.get_player_x() && y == player.get_player_y()) {
+						if ((-1 * strength) + get_modifier(1) < 0) {
+							player.change_health((-1 * strength) + get_modifier(1));
+						}
+					}
+					level.set_tile(x, y, Tile(false, "arm_3_v"));
+				} else if (level.get_tile(x, y).get_type() == "arm_2_h") {
+					if (x == player.get_player_x() && y == player.get_player_y()) {
+						if ((-1 * strength) + get_modifier(1) < 0) {
+							player.change_health((-1 * strength) + get_modifier(1));
+						}
+					}
+					level.set_tile(x, y, Tile(false, "arm_3_h"));
+				} else if (level.get_tile(x, y).get_type() == "arm_3_v" || level.get_tile(x, y).get_type() == "arm_3_h") {
+					level.set_tile(x, y, Tile(true, "no_spawn_floor"));
+				}
+			}
+		}
+	}
 }

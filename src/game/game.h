@@ -67,6 +67,13 @@ public:
 
 	//Takes a 'turn' for all enemies
 	void enemies_action();
+	
+	//Takes a turn for the boss based on the boss type
+	void boss_action(std::string name);
+
+	void spread_from_center(Coordinate center, int distance);
+	std::string orient_towards_player(Coordinate center);
+	void update_arms_in_radius(Coordinate center, int radius, int strength);
 
 	//Choose a random position (adjacent or no movement) for the enemy to move to
 	Coordinate move_enemy_randomly(int x, int y);
@@ -129,5 +136,7 @@ public:
 
 	//Attempt to spawn a boss, starting a boss fight and setting the game to boss mode
 	void attempt_boss_spawn();
+	
+
 
 };

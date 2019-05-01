@@ -358,4 +358,26 @@ void Level::clear() {
 	}
 }
 
+//Gets a random tile in the sqaure (NOT circular) radius
+Coordinate Level::get_random_passable_tile_in_radius(int x_center, int y_center, int radius) {
+	std::vector<Coordinate> tiles;
+	for (int y = y_center - radius; y <= y_center + radius; y++) {
+		for (int x = x_center - radius; x <= x_center + radius; x++) {
+			if (is_valid_passable_tile(x, y)) {
+				tiles.push_back(Coordinate(x, y));
+			}
+		}
+	}
+	if (tiles.size() > 0) {
+		int index = rand() % tiles.size();
+		return tiles[index];
+	}
+	else {
+		return Coordinate(x_center, y_center);
+	}
 
+}
+
+Coordinate Level::get_random_passable_tile_in_radius(Coordinate center, int radius) {
+	return get_random_passable_tile_in_radius(center.get_coordinate_x(), center.get_coordinate_y(), radius);
+}

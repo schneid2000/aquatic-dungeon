@@ -15,6 +15,14 @@ void ofApp::setup(){
 	boss_wall.load("graphics/Tiles/boss_wall.png");
 	boss_spawn.load("graphics/Tiles/boss_spawn.png");
 	
+	//Boss attack tiles
+	cuttle_attack_1_v.load("graphics/Tiles/boss_attack_1_vertical.png");
+	cuttle_attack_1_h.load("graphics/Tiles/boss_attack_1_horizontal.png");
+	cuttle_attack_2_v.load("graphics/Tiles/boss_attack_2_vertical.png");
+	cuttle_attack_2_h.load("graphics/Tiles/boss_attack_2_horizontal.png");
+	cuttle_attack_3_v.load("graphics/Tiles/boss_attack_3_vertical.png");
+	cuttle_attack_3_h.load("graphics/Tiles/boss_attack_3_horizontal.png");
+	
 	//Player graphics
 	player_front.load("graphics/Sprites/Player/cedar_front.png");
 	player_left.load("graphics/Sprites/Player/cedar_left.png");
@@ -75,7 +83,11 @@ void ofApp::update(){
 	}
 
 	game.check_to_add_item();
-	game.attempt_boss_spawn();
+
+	if (!game.is_boss_mode()) {
+		game.attempt_boss_spawn();
+	}
+	
 }
 
 //--------------------------------------------------------------
@@ -499,6 +511,18 @@ ofImage ofApp::get_image_from_type(std::string type) {
 		return boss_wall;
 	} else if (type == "boss_spawn") {
 		return boss_spawn;
+	} else if (type == "arm_1_v") {
+		return cuttle_attack_1_v;
+	} else if (type == "arm_1_h") {
+		return cuttle_attack_1_h;
+	} else if (type == "arm_2_v") {
+		return cuttle_attack_2_v;
+	} else if (type == "arm_2_h") {
+		return cuttle_attack_2_h;
+	} else if (type == "arm_3_v") {
+		return cuttle_attack_3_v;
+	} else if (type == "arm_3_h") {
+		return cuttle_attack_3_h;
 	} else {
 		return ceiling;
 	}
