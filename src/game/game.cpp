@@ -8,6 +8,7 @@ Game::Game() {
 	player = Player(level.get_start_tile(), 100, 20);
 	mode = "default";
 	boss_mode = false;
+	victory = false;
 	create_entities();
 }
 
@@ -30,6 +31,10 @@ std::string Game::get_mode() {
 
 bool Game::is_boss_mode() {
 	return boss_mode;
+}
+
+bool Game::get_victory() {
+	return victory;
 }
 
 //Checks if the player is in combat mode
@@ -80,6 +85,18 @@ bool Game::is_enemy_at_position(int x, int y) {
 			if (loc.current_tile.get_coordinate_x() == x && loc.current_tile.get_coordinate_y() == y) {
 				return true;
 			}
+		}
+	}
+
+	auto bosses = registry.view<Boss>();
+
+	//Go through bosses and check for valid boss boxes based on the boss name
+	for (auto boss : bosses) {
+		auto &boss_stats = bosses.get(boss);
+		if ((boss_stats.start.get_coordinate_x() == x && boss_stats.start.get_coordinate_y() == y) 
+			|| (boss_stats.start.get_coordinate_x() == x && boss_stats.start.get_coordinate_y() - 1 == y) 
+			&& boss_stats.name == "Cuttlefish") {
+			return true;
 		}
 	}
 
@@ -270,6 +287,21 @@ void Game::attack_enemy_at_tile(Coordinate target) {
 						get_registry().assign<Equipment>(entity, get_random_value_by_type(type, "Weapon"), get_random_value_by_type(type, "Armor"), get_random_value_by_type(type, "Magic"));
 					}
 				}
+			}
+		}
+	}
+
+	auto bosses = registry.view<Boss>();
+	for (auto boss : bosses) {
+		auto &boss_stats = bosses.get(boss);
+		if ((target.get_coordinate_x() == boss_stats.start.get_coordinate_x() && target.get_coordinate_y() == boss_stats.start.get_coordinate_y())
+			|| (target.get_coordinate_x() == boss_stats.start.get_coordinate_x() && target.get_coordinate_y() == boss_stats.start.get_coordinate_y() - 1) 
+			&& boss_stats.name == "Cuttlefish") {
+			boss_stats.current_health = boss_stats.current_health - (player.get_strength() + get_modifier(0));
+			if (boss_stats.current_health <= 0) {
+				registry.destroy(boss);
+				victory = true;
+				player.change_health(player.get_total_health());
 			}
 		}
 	}

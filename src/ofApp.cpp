@@ -306,14 +306,14 @@ void ofApp::draw(){
 				}
 			}
 		}
-
-
-			
-
 	}
 	
 	
-	
+	//Victory screen
+	if (game.get_victory()) {
+		press_start_2p.drawString("You won!", 384, 384);
+		press_start_2p.drawString("Press any key to exit", 384, 416);
+	}
 
 
 
@@ -322,6 +322,11 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
+	if (game.get_victory()) {
+		std::exit(0);
+	}
+
+
 	//Set players current x and y as shorthand for reference
 	int x = game.get_player().get_player_x();
 	int y = game.get_player().get_player_y();

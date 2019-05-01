@@ -34,7 +34,8 @@ private:
 	//So boss mode is considered a separate variable, true if on, false if off
 	bool boss_mode;
 
-
+	//True if the player has won the game
+	bool victory;
 
 
 public:
@@ -47,6 +48,9 @@ public:
 	entt::DefaultRegistry& get_registry();
 	std::string get_mode();
 	bool is_boss_mode();
+
+	//Returns true if victorious
+	bool get_victory();
 
 	//Returns true if in combat mode
 	bool in_combat_mode();
