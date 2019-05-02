@@ -1,21 +1,33 @@
 #include "player.h"
 
+//Empty constructor
 Player::Player() {
+	dead = false;
 	for (int slot = 0; slot < kInventorySize; slot++) {
 		occupied_slots[slot] = false;
 	}
 	selected_slot = -1;
 }
 
+//Recommended constructor
+//Takes in the spawn tile of the player, their total health (which is also their initial health), and their initial strength
 Player::Player(Coordinate start_tile, int start_health, int start_strength) {
+	//Set the stats as passed
 	current_tile = start_tile;
 	total_health = start_health;
 	health = start_health;
 	strength = start_strength;
+
+	//Intialize the inventory slots to empty
 	for (int slot = 0; slot < kInventorySize; slot++) {
 		occupied_slots[slot] = false;
 	}
+
+	//Initialize the selected slot to nothing
 	selected_slot = -1;
+
+	//The player is not initially dead
+	dead = false;
 }
 
 //Getter for the current tile
@@ -38,26 +50,36 @@ int Player::get_player_y() {
 	return current_tile.get_coordinate_y();
 }
 
+//Get the player's current health
 int Player::get_health() {
 	return health;
 }
 
+//Get the player's total health
 int Player::get_total_health() {
 	return total_health;
 }
 
+//Get the player's strength (the default damage they do in an attack)
 int Player::get_strength() {
 	return strength;
 }
 
+//Adjust the player's health by the given value
+//Positive restores health and negative does damage
 void Player::change_health(int value) {
+	//If the adjustment exceeds the player's total health, it will stay at the player's total health
 	if (health + value > total_health) {
 		health = total_health;
 	}
 	else {
 		health += value;
 	}
-	
+
+	//If the player has no health then they are dead
+	if (get_health() <= 0) {
+		dead = true;
+	}
 }
 
 //Gets the direction the player turned in

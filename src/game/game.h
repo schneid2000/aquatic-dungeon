@@ -52,9 +52,6 @@ public:
 	//Returns true if victorious
 	bool get_victory();
 
-	//Returns true if in combat mode
-	bool in_combat_mode();
-
 	//Setters
 	void set_mode(std::string new_mode);
 
@@ -75,7 +72,7 @@ public:
 	//Takes a turn for the boss based on the boss type
 	void boss_action(std::string name);
 
-	void spread_from_center(Coordinate center, int distance);
+	void spawn_tendril(Coordinate center, int distance);
 	std::string orient_towards_player(Coordinate center);
 	void update_arms_in_radius(Coordinate center, int radius, int strength);
 

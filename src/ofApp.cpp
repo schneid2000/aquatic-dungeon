@@ -78,10 +78,6 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	if (game.get_player().get_health() <= 0) {
-		std::exit(0);
-	}
-
 	game.check_to_add_item();
 
 	if (!game.is_boss_mode()) {
@@ -111,7 +107,7 @@ void ofApp::draw(){
 				image.draw(pixel_x, pixel_y);
 			}
 
-			if (game.in_combat_mode() && game.is_combat_space(x, y)) {
+			if (game.get_mode() == "combat" && game.is_combat_space(x, y)) {
 				combat_tile.draw(pixel_x, pixel_y);
 			}
 
@@ -314,6 +310,12 @@ void ofApp::draw(){
 		press_start_2p.drawString("Press any key to exit", 256, 416);
 	}
 
+	//Game over screen
+	if (game.get_player().get_health() <= 0) {
+		press_start_2p.drawString("You lose!", 256, 384);
+		press_start_2p.drawString("Press any key to exit", 256, 416);
+	}
+
 
 
 	
@@ -321,7 +323,8 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-	if (game.get_victory()) {
+	//If the player wins or loses, any key press will exit the game
+	if (game.get_victory() || game.get_player().get_health() <= 0) {
 		std::exit(0);
 	}
 
@@ -344,28 +347,28 @@ void ofApp::keyPressed(int key){
 	if (game.get_mode() != "inventory") {
 		if (key == 'w') {
 			game.get_player().set_turn_direction("up");
-			if (game.is_tile_unobstructed(x, y - 1) && !game.in_combat_mode()) {
+			if (game.is_tile_unobstructed(x, y - 1) && game.get_mode() != "combat") {
 				game.get_player().set_current_tile(x, y - 1);
 				game.enemies_action();
 			}
 		}
 		else if (key == 'a') {
 			game.get_player().set_turn_direction("left");
-			if (game.is_tile_unobstructed(x - 1, y) && !game.in_combat_mode()) {
+			if (game.is_tile_unobstructed(x - 1, y) && game.get_mode() != "combat") {
 				game.get_player().set_current_tile(x - 1, y);
 				game.enemies_action();
 			}
 		}
 		else if (key == 's') {
 			game.get_player().set_turn_direction("down");
-			if (game.is_tile_unobstructed(x, y + 1) && !game.in_combat_mode()) {
+			if (game.is_tile_unobstructed(x, y + 1) && game.get_mode() != "combat") {
 				game.get_player().set_current_tile(x, y + 1);
 				game.enemies_action();
 			}
 		}
 		else if (key == 'd') {
 			game.get_player().set_turn_direction("right");
-			if (game.is_tile_unobstructed(x + 1, y) && !game.in_combat_mode()) {
+			if (game.is_tile_unobstructed(x + 1, y) && game.get_mode() != "combat") {
 				game.get_player().set_current_tile(x + 1, y);
 				game.enemies_action();
 			}
@@ -392,9 +395,9 @@ void ofApp::mouseDragged(int x, int y, int button){
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
 	//Right click cycles 'combat' mode which displays what tiles the player can attack from
-	if (button == 2 && !game.in_combat_mode()) {
+	if (button == 2 && game.get_mode() != "combat") {
 		game.set_mode("combat");
-	} else if (button == 2 && game.in_combat_mode()) {
+	} else if (button == 2 && game.get_mode() == "combat") {
 		game.set_mode("default");
 	}
 

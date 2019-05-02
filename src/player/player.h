@@ -30,6 +30,9 @@ private:
 	//The slot a player has selected (-1 if no slot is selected)
 	int selected_slot;
 
+	//True if the player is dead
+	bool dead;
+
 public:
 	//Empty constructor
 	Player();
