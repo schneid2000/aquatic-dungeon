@@ -82,7 +82,7 @@ bool Game::is_enemy_at_position(int x, int y) {
 		if (registry.has<Enemy>(entity)) {
 			auto &loc = locations.get(entity);
 			//If an enemy in the registry has this location, return true
-			if (loc.current_tile.get_coordinate_x() == x && loc.current_tile.get_coordinate_y() == y) {
+			if (loc.current_tile == Coordinate(x, y)) {
 				return true;
 			}
 		}
@@ -93,7 +93,7 @@ bool Game::is_enemy_at_position(int x, int y) {
 	//Go through bosses and check for valid boss boxes based on the boss name
 	for (auto boss : bosses) {
 		auto &boss_stats = bosses.get(boss);
-		if ((boss_stats.start.get_coordinate_x() == x && boss_stats.start.get_coordinate_y() == y) 
+		if ((boss_stats.start == Coordinate(x, y)) 
 			|| (boss_stats.start.get_coordinate_x() == x && boss_stats.start.get_coordinate_y() - 1 == y) 
 			&& boss_stats.name == "Cuttlefish") {
 			return true;
@@ -159,17 +159,17 @@ void Game::enemies_action() {
 
 		} else if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) <= 3 && get_euclidean_distance(loc.current_tile, player.get_current_tile()) > 1) {
 			//If the enemy is between 1 and a larger radius they will attempt to move closer to the player
-			destination = move_enemy_towards_player(loc.current_tile.get_coordinate_x(), loc.current_tile.get_coordinate_y());
+			destination = move_enemy_towards_player(loc.current_tile);
 
 		} else if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) > 3) {
 			//If they are too far away they will move randomly
-			destination = move_enemy_randomly(loc.current_tile.get_coordinate_x(), loc.current_tile.get_coordinate_y());
+			destination = move_enemy_randomly(loc.current_tile);
 
 		}
 
 
 		//If the enemy is not next to the player and the destination has changed, change the direction based on the destination 
-		if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) > 1 && (loc.current_tile.get_coordinate_x() != destination.get_coordinate_x()) || loc.current_tile.get_coordinate_y() != destination.get_coordinate_y()) {
+		if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) > 1 && !(destination == loc.current_tile)) {
 			dir.direction = determine_direction_relatively(loc.current_tile, destination);
 		} else if (get_euclidean_distance(loc.current_tile, player.get_current_tile()) == 1) {
 			//Otherwise change direction based on the player
@@ -273,7 +273,7 @@ void Game::attack_enemy_at_tile(Coordinate target) {
 	for (auto entity : locations) {
 		if (registry.has<Enemy>(entity)) {
 			auto &loc = locations.get(entity);
-			if (target.get_coordinate_x() == loc.current_tile.get_coordinate_x() && target.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
+			if (target == loc.current_tile) {
 				auto &opponent = stats.get(entity);
 				opponent.health = opponent.health - (player.get_strength() + get_modifier(0));
 				if (opponent.health <= 0) {
@@ -294,9 +294,8 @@ void Game::attack_enemy_at_tile(Coordinate target) {
 	auto bosses = registry.view<Boss>();
 	for (auto boss : bosses) {
 		auto &boss_stats = bosses.get(boss);
-		if ((target.get_coordinate_x() == boss_stats.start.get_coordinate_x() && target.get_coordinate_y() == boss_stats.start.get_coordinate_y())
-			|| (target.get_coordinate_x() == boss_stats.start.get_coordinate_x() && target.get_coordinate_y() == boss_stats.start.get_coordinate_y() - 1) 
-			&& boss_stats.name == "Cuttlefish") {
+		if (target == boss_stats.start && boss_stats.name == "Cuttlefish"
+			|| (target.get_coordinate_x() == boss_stats.start.get_coordinate_x() && target.get_coordinate_y() == boss_stats.start.get_coordinate_y() - 1)) {
 			boss_stats.current_health = boss_stats.current_health - (player.get_strength() + get_modifier(0));
 			if (boss_stats.current_health <= 0) {
 				registry.destroy(boss);
@@ -335,13 +334,17 @@ Coordinate Game::move_enemy_towards_player(int current_x, int current_y) {
 	return new_locations[chosen_value];
 }
 
+Coordinate Game::move_enemy_towards_player(Coordinate coordinate) {
+	return move_enemy_towards_player(coordinate.get_coordinate_x(), coordinate.get_coordinate_y());
+}
+
 
 
 bool Game::is_distance_reduced(int initial_d, Coordinate new_start, Coordinate end) {
 	int final_distance = get_euclidean_distance(new_start, end);
 	if (final_distance < initial_d && level.is_valid_passable_tile(new_start)
 		&& !is_enemy_at_position(new_start)
-		&& (new_start.get_coordinate_x() != player.get_player_x() || new_start.get_coordinate_y() != player.get_player_y())) {
+		&& (!(new_start == player.get_current_tile()))) {
 		return true;
 	}
 
@@ -374,7 +377,7 @@ bool Game::is_tile_unobstructed(Coordinate coordinate) {
 
 
 int Game::get_slot_from_relative_coordinate(Coordinate coordinate) {
-	if (coordinate.get_coordinate_y() == 1) {
+	if (coordinate.get_coordinate_y() == 1 && coordinate.get_coordinate_x() % 2 != 0) {
 		return (coordinate.get_coordinate_x() - 1) / 2;
 	} else if (coordinate.get_coordinate_y() == 4 && coordinate.get_coordinate_x() >= 2 && coordinate.get_coordinate_x() < 5) {
 		return coordinate.get_coordinate_x() + 1;
@@ -514,8 +517,7 @@ void Game::check_to_add_item() {
 		if (registry.has<Location>(entity) && !registry.has<InventorySlot>(entity)) {
 			auto &loc = locations.get(entity);
 			auto &stats = items.get(entity);
-			if (loc.current_tile.get_coordinate_x() == player.get_player_x()
-				&& loc.current_tile.get_coordinate_y() == player.get_player_y()) {
+			if (loc.current_tile == player.get_current_tile()) {
 				registry.assign<InventorySlot>(entity, player.get_first_empty_slot(), stats.type);
 				registry.replace<Location>(entity, player.coord_of_first_empty_slot());
 				player.occupy_slot(player.get_first_empty_slot());
@@ -536,8 +538,7 @@ int Game::get_modifier(int slot) {
 		auto &loc = locations.get(item);
 		if (registry.has<Equipment>(item)) {
 			auto &equip_stats = equipment.get(item);
-			if (destination.get_coordinate_x() == loc.current_tile.get_coordinate_x()
-				&& destination.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
+			if (destination == loc.current_tile) {
 				if (slot == 0) {
 					return equip_stats.melee_modifier;
 				} else if (slot == 1) {
@@ -568,7 +569,7 @@ void Game::attempt_boss_spawn() {
 					for (auto entity : locations) {
 						auto &loc = locations.get(entity);
 						if ((registry.has<Item>(entity) && !registry.has<InventorySlot>(entity)) || registry.has<Enemy>(entity) 
-							&& loc.current_tile.get_coordinate_x() == x && loc.current_tile.get_coordinate_y() == y) {
+							&& loc.current_tile == Coordinate(x, y)) {
 							registry.destroy(entity);
 						}
 					}

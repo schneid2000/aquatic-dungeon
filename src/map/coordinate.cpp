@@ -36,3 +36,13 @@ void Coordinate::set_coordinate(int new_x, int new_y) {
 	x = new_x;
 	y = new_y;
 }
+
+//Overload operator for == for Coordinate object
+//Coordinates are equal if their x and y values are equal
+bool operator== (const Coordinate &first, const Coordinate &second) {
+	if (first.x == second.x && first.y == second.y) {
+		return true;
+	}
+
+	return false;
+}

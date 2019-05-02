@@ -26,6 +26,18 @@ TEST_CASE("Setting a new y coordinate") {
 	REQUIRE(point.get_coordinate_y() == 3);
 }
 
+TEST_CASE("Testing operator overload for equivalence comparison") {
+	Coordinate first = Coordinate(4, 3);
+	Coordinate second = Coordinate(4, 3);
+	REQUIRE(first == second);
+}
+
+TEST_CASE("Coordinates that are not equal are not equal") {
+	Coordinate first = Coordinate(4, 3);
+	Coordinate second = Coordinate(4, 4);
+	REQUIRE(!(first == second));
+}
+
 
 
 // Tile tests

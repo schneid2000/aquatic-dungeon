@@ -22,4 +22,6 @@ public:
 	void set_coordinate_y(int new_y);
 	void set_coordinate(int new_x, int new_y);
 
+	//https://www.learncpp.com/cpp-tutorial/96-overloading-the-comparison-operators/ help with overloading operators
+	friend bool operator==(const Coordinate &first, const Coordinate &second);
 };

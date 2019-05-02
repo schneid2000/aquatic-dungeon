@@ -117,7 +117,7 @@ void ofApp::draw(){
 
 			for (auto entity : location) {
 				auto &loc = location.get(entity);
-				if (loc.current_tile.get_coordinate_x() == x && loc.current_tile.get_coordinate_y() == y) {
+				if (loc.current_tile == Coordinate(x,y)) {
 					if (game.get_registry().has<Item>(entity) && !game.get_registry().has<InventorySlot>(entity)) {
 						auto &info = items.get(entity);
 						ofImage item_image = get_image_from_item(info.image);
@@ -154,7 +154,7 @@ void ofApp::draw(){
 					//Should usually be 1
 					for (auto boss : bosses) {
 						auto &stats = bosses.get(boss);
-						if (stats.start.get_coordinate_x() == x && stats.start.get_coordinate_y() == y) {
+						if (stats.start == Coordinate(x, y)) {
 							ofImage boss_image = get_image_from_boss(stats.name);
 							boss_image.draw(pixel_x - kTileSize, pixel_y - kTileSize);
 						}
@@ -186,7 +186,7 @@ void ofApp::draw(){
 		for (int x = display_x; x < display_x + kDisplaySize; x++) {
 			for (auto entity : location) {
 				auto &loc = location.get(entity);
-				if (loc.current_tile.get_coordinate_x() == x && loc.current_tile.get_coordinate_y() == y) {
+				if (loc.current_tile == Coordinate(x, y)) {
 					if (game.get_registry().has<Enemy>(entity)) {
 						auto &stats = enemies.get(entity);
 
@@ -291,8 +291,7 @@ void ofApp::draw(){
 		for (auto item : inventory_items) {
 			auto &loc = locations.get(item);
 			auto &stats = item_stats.get(item);
-			if (current.get_coordinate_x() == loc.current_tile.get_coordinate_x()
-				&& current.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
+			if (current == loc.current_tile) {
 				press_start_2p.drawString(stats.name, mouseX, mouseY);
 				if (game.get_registry().has<Equipment>(item)) {
 					auto &equip = equip_stats.get(item);
@@ -311,8 +310,8 @@ void ofApp::draw(){
 	
 	//Victory screen
 	if (game.get_victory()) {
-		press_start_2p.drawString("You won!", 384, 384);
-		press_start_2p.drawString("Press any key to exit", 384, 416);
+		press_start_2p.drawString("You won!", 256, 384);
+		press_start_2p.drawString("Press any key to exit", 256, 416);
 	}
 
 
@@ -407,28 +406,28 @@ void ofApp::mousePressed(int x, int y, int button){
 		game.enemies_action();
 	}
 
+	//Transferring inventory items
 	if (button == 0 && game.get_mode() == "inventory" && game.get_player().get_selected_slot() == -1) {
 		Coordinate current = game.get_relative_coordinate_from_pixel(x, y);
 		auto inventory_items = game.get_registry().view<InventorySlot>();
 		auto locations = game.get_registry().view<Location>();
 		for (auto item : inventory_items) {
 			auto &loc = locations.get(item);
-			if (current.get_coordinate_x() == loc.current_tile.get_coordinate_x()
-				&& current.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
+			if (current == loc.current_tile) {
 				game.get_player().set_selected_slot(game.get_slot_from_relative_coordinate(current));
 			}
 		}
 	} else if (button == 0 && game.get_mode() == "inventory" && game.get_player().get_selected_slot() != -1) {
 		Coordinate current = game.get_relative_coordinate_from_pixel(x, y);
 		Coordinate slot = game.get_coordinate_from_slot(game.get_player().get_selected_slot());
-		if (current.get_coordinate_x() == slot.get_coordinate_x() && current.get_coordinate_y() == slot.get_coordinate_y()) {
+		if (current == slot) {
 			auto inventory_items = game.get_registry().view<InventorySlot>();
 			auto locations = game.get_registry().view<Location>();
 			auto item_stats = game.get_registry().view<Item>();
 			for (auto item : inventory_items) {
 				auto &loc = locations.get(item);
 				auto &stats = item_stats.get(item);
-				if (stats.type == "Healing" && current.get_coordinate_x() == loc.current_tile.get_coordinate_x() && current.get_coordinate_y() == loc.current_tile.get_coordinate_y()) {
+				if (stats.type == "Healing" && (current == loc.current_tile)) {
 					auto healing = game.get_registry().view<Healing>();
 					auto &health = healing.get(item);
 					game.get_player().change_health(health.health);
@@ -437,16 +436,15 @@ void ofApp::mousePressed(int x, int y, int button){
 				}
 			}
 			game.get_player().set_selected_slot(-1);
-		} else if (game.get_slot_from_relative_coordinate(current) != -1 && current.get_coordinate_x() != slot.get_coordinate_x() || current.get_coordinate_y() != slot.get_coordinate_y()) {
+		} else if (game.get_slot_from_relative_coordinate(current) != -1 && !(current == slot)) {
 			auto inventory_items = game.get_registry().view<InventorySlot>();
 			auto locations = game.get_registry().view<Location>();
 			auto item_stats = game.get_registry().view<Item>();
 			for (auto item : inventory_items) {
 				auto &loc = locations.get(item);
 				auto &inventory = inventory_items.get(item);
-				if (game.get_coordinate_from_slot(game.get_player().get_selected_slot()).get_coordinate_x() == loc.current_tile.get_coordinate_x()
-					&& game.get_coordinate_from_slot(game.get_player().get_selected_slot()).get_coordinate_y() == loc.current_tile.get_coordinate_y() 
-					&& game.get_slot_from_relative_coordinate(current) != -1) {
+				if (game.get_slot_from_relative_coordinate(current) != -1 
+					&& game.get_coordinate_from_slot(game.get_player().get_selected_slot()) == loc.current_tile) {
 					if (game.get_slot_from_relative_coordinate(current) == 0 && inventory.type_restriction == "Weapon"
 						|| game.get_slot_from_relative_coordinate(current) == 1 && inventory.type_restriction == "Armor"
 						|| game.get_slot_from_relative_coordinate(current) == 2 && inventory.type_restriction == "Magic"

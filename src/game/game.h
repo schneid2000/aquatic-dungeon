@@ -101,6 +101,7 @@ public:
 
 	//An enemy attempts to move closer to a player
 	Coordinate move_enemy_towards_player(int current_x, int current_y);
+	Coordinate move_enemy_towards_player(Coordinate coordinate);
 
 	//Returns true if the calculated distance is smaller than the initial distance and the path is unobstructed
 	bool is_distance_reduced(int initial_d, Coordinate new_start, Coordinate end);
