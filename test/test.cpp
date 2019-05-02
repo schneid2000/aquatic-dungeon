@@ -5,6 +5,10 @@
 #include "../src/map/level.h"
 #include "../src/map/room.h"
 #include "../src/map/tile.h"
+#include "../src/player/player.h"
+
+
+
 
 //Coordinate tests
 
@@ -114,7 +118,25 @@ TEST_CASE("Getting a count of all passable tiles in a Level") {
 
 // Player tests
 
+TEST_CASE("Intializing a player") {
+	Player player = Player(Coordinate(0, 0), 100, 20);
+	REQUIRE(player.get_current_tile() == Coordinate(0, 0));
+	REQUIRE(player.get_health() == 100);
+	REQUIRE(player.get_total_health() == 100);
+	REQUIRE(player.get_strength() == 20);
+}
+
+TEST_CASE("Coordinate of first empty slot in the player's 6-slot inventory") {
+	Player player = Player(Coordinate(0, 0), 100, 20);
+	REQUIRE(player.coord_of_first_empty_slot().get_coordinate_x() == 2);
+	REQUIRE(player.coord_of_first_empty_slot().get_coordinate_y() == 4);
+}
+
+TEST_CASE("An occupied player slot is not empty") {
+	Player player = Player(Coordinate(0, 0), 100, 20);
+	player.occupy_slot(0);
+	REQUIRE(!player.slot_is_empty(0));
+}
 
 
-
-// Game tests
+// Had trouble testing the other objects with the additional include directory for the header-only library

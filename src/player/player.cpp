@@ -92,7 +92,7 @@ void Player::set_turn_direction(std::string new_direction) {
 	turn_direction = new_direction;
 }
 
-//Returns true if the player's inventory is full
+//Returns true if the player's 6-item inventory is full
 bool Player::is_inventory_full() {
 	for (int slot = kFirstItemIndex; slot < kInventorySize; slot++) {
 		if (!occupied_slots[slot]) {
@@ -126,6 +126,7 @@ int Player::get_first_empty_slot() {
 	return -1;
 }
 
+//Gets the cooordinate of the first empty slot of the player's 6-slot inventory
 Coordinate Player::coord_of_first_empty_slot() {
 	int slot = get_first_empty_slot();
 	int y = 4;
@@ -139,19 +140,22 @@ Coordinate Player::coord_of_first_empty_slot() {
 	return Coordinate(x, y);
 }
 
-
+//Marks a slot of the player's inventory as filled
 void Player::occupy_slot(int index) {
 	occupied_slots[index] = true;
 }
 
+//Marks a slot of the player's inventory as empty
 void Player::free_slot(int index) {
 	occupied_slots[index] = false;
 }
 
+//Gets the value of the selected slot (-1 unselected, 0 - 8 if selected)
 int Player::get_selected_slot() {
 	return selected_slot;
 }
 
+//Set the selected slot value of the player
 void Player::set_selected_slot(int slot) {
 	selected_slot = slot;
 }
