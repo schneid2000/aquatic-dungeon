@@ -157,16 +157,25 @@ void Level::load_room_presets() {
 	}
 }
 
+//Chooses a random room from the room presets and adds it to the level
 void Level::add_random_room_randomly() {
 	if (room_presets.size() == 0) {
 		return;
 	}
+
+	//Selects a random room from the preset vector (should be loaded beforehand)
 	int index = rand() % (room_presets.size());
+
+	//Gets a random tile to start as the corner of the room
 	Coordinate random_tile = get_random_tile();
 	Room random_room = room_presets[index];
 	int room_tile_index = 0;
+
+	//Goes through and adds the tiles of the rooms as per the room object states. 
+	//Parts of the room that go off the map are not generated and additionally rooms can partially overlap.
 	for (int y = random_tile.get_coordinate_y(); y < random_tile.get_coordinate_y() + random_room.get_height(); y++) {
 		for (int x = random_tile.get_coordinate_x(); x < random_tile.get_coordinate_x() + random_room.get_width(); x++) {
+			//The room will not try to override already existing floor tiles.
 			if (is_valid_coordinate(x, y) && room_tile_index < random_room.size() && get_tile(x, y).get_type() != "floor") {
 				map[y][x] = random_room.get_tile(room_tile_index);
 			}
@@ -175,16 +184,23 @@ void Level::add_random_room_randomly() {
 	}
 }
 
+
+//Adds the boss room into the level
 void Level::add_boss_room() {
 	if (boss_presets.size() == 0) {
 		return;
 	}
 
+	//Choose a random boss room from the boss room presets (loaded beforehand)
 	int index = rand() % (boss_presets.size());
+
+	//Gets a random tile to act as the corner for generating the boss room
 	Coordinate random_tile = get_random_tile();
 	Room boss_room = boss_presets[index];
 	int tile_x = random_tile.get_coordinate_x();
 	int tile_y = random_tile.get_coordinate_y();
+
+	//Rerolls the tile until the entire boss room is guaranteed to be generated
 	while (!is_valid_coordinate(tile_x + boss_room.get_width(), tile_y + boss_room.get_height())) {
 		random_tile = get_random_tile();
 		tile_x = random_tile.get_coordinate_x();
@@ -192,6 +208,8 @@ void Level::add_boss_room() {
 	}
 	
 	int room_tile_index = 0;
+
+	//Puts the boss room in the level. The boss room will override all tiles already underneath it.
 	for (int y = random_tile.get_coordinate_y(); y < random_tile.get_coordinate_y() + boss_room.get_height(); y++) {
 		for (int x = random_tile.get_coordinate_x(); x < random_tile.get_coordinate_x() + boss_room.get_width(); x++) {
 			map[y][x] = boss_room.get_tile(room_tile_index);
@@ -201,12 +219,12 @@ void Level::add_boss_room() {
 }
 
 
-
-
-
-
+//Generates a random hallway
 void Level::generate_random_hall() {
+	//The hallway starts from a non-passable tile
 	Coordinate current = get_random_impassable_tile();
+
+	//The direction is randomly selected
 	int up_right_choice = rand() % 2;
 	int opposite_choice = rand() % 2;
 	create_hall_in_direction(current, up_right_choice, opposite_choice);
@@ -245,7 +263,9 @@ void Level::create_hall_in_direction(Coordinate current_tile, bool up_or_right, 
 	int x = current_tile.get_coordinate_x();
 	int y = current_tile.get_coordinate_y();
 
+	//The hall will continue to generate until it hits an existing floor tile or the edge of the level
 	while (is_valid_coordinate(current_tile) && get_tile(x, y).get_type() != "floor") {
+		//Adds a floor tile and then a wall on both sides, based on the direction
 		map[y][x] = Tile(true, "floor");
 		if (is_valid_coordinate(x + x_wall_modifier, y + y_wall_modifier) && get_tile(x + x_wall_modifier, y + y_wall_modifier).get_type() != "floor") {
 			map[y + y_wall_modifier][x + x_wall_modifier] = Tile(false, "wall");
@@ -253,6 +273,8 @@ void Level::create_hall_in_direction(Coordinate current_tile, bool up_or_right, 
 		if (is_valid_coordinate(x - x_wall_modifier, y - y_wall_modifier) && get_tile(x - x_wall_modifier, y - y_wall_modifier).get_type() != "floor") {
 			map[y - y_wall_modifier][x - x_wall_modifier] = Tile(false, "wall");
 		}
+
+		//Update the variables used in the loop
 		current_tile.set_coordinate(x + x_path_modifier, y + y_path_modifier);
 		x = current_tile.get_coordinate_x();
 		y = current_tile.get_coordinate_y();
@@ -264,6 +286,7 @@ void Level::create_hall_in_direction(Coordinate current_tile, bool up_or_right, 
 float Level::percent_passable_tiles() {
 	int floor_tiles = 0;
 
+	//Get the number of floor tiles
 	for (int y = 0; y < kSize; y++) {
 		for (int x = 0; x < kSize; x++) {
 			if (map[y][x].get_type() == "floor") {
@@ -272,20 +295,29 @@ float Level::percent_passable_tiles() {
 		}
 	}
 
-
+	//Return the number of floor tiles over the total size of the level
 	return (float) (((float) floor_tiles) / (float) (kSize * kSize));
 }
 
 //Generate the level by adding rooms, hallways, and the boss room
 void Level::instantiate_level() {
+	//In the case of a recursion, reset any rooms that were previously generated in the level
 	clear();
+
+	//Until the percent of floor tiles is sufficient, keep adding rooms and halls
 	while (percent_passable_tiles() < kPercentPassable) {
 		add_random_room_randomly();
 		add_random_room_randomly();
 		generate_random_hall();
 	}
+
+	//Once enough rooms have been added, add the boss room
 	add_boss_room();
+
+	//Set up the tile where the player will spawn
 	setup_start_tiles();
+
+	//Create a new level if a path from the spawn to the boss room cannot be found
 	if (!path_to_gateway()) {
 		instantiate_level();
 	}
@@ -300,48 +332,65 @@ bool Level::path_to_gateway() {
 	return check_for_path(start_tile);
 }
 
+
+//Checks for a path between the given tile and the boss room
 bool Level::check_for_path(Coordinate search_center) {
-	
+	//Increase the counter each time the path is searched for
 	tile_counter++;
+	//Add the seen tile to the path_tiles vector
 	path_tiles.push_back(search_center);
+
+	//Return true if we have reached a boss gateway tile
 	if (is_valid_coordinate(search_center) && get_tile(search_center).get_type() == "boss_gateway") {
 		return true;
 	}
+
+	//If a search has occurred an obscene amount of times, return false
 	if (tile_counter > 900) {
 		return false;
 	}
 
-	if (is_valid_coordinate(search_center.get_coordinate_x() + 1, search_center.get_coordinate_y()) 
-		&& !seen_tile(Coordinate(search_center.get_coordinate_x() + 1, search_center.get_coordinate_y())) 
-		&& (get_tile(search_center.get_coordinate_x() + 1, search_center.get_coordinate_y()).get_type() == "floor" || get_tile(search_center.get_coordinate_x() + 1, search_center.get_coordinate_y()).get_type() == "boss_gateway")) {
-		return check_for_path(Coordinate(search_center.get_coordinate_x() + 1, search_center.get_coordinate_y()));
+	int x = search_center.get_coordinate_x();
+	int y = search_center.get_coordinate_y();
+
+	//Check all of the cardinal directions, above, left, right, and below this tile
+	if (can_be_path_tile(x + 1, y)) {
+		return check_for_path(Coordinate(x + 1, y));
 	}
 
-	if (is_valid_coordinate(search_center.get_coordinate_x() - 1, search_center.get_coordinate_y()) 
-		&& !seen_tile(Coordinate(search_center.get_coordinate_x() - 1, search_center.get_coordinate_y())) 
-		&& (get_tile(search_center.get_coordinate_x() - 1, search_center.get_coordinate_y()).get_type() == "floor" || get_tile(search_center.get_coordinate_x() - 1, search_center.get_coordinate_y()).get_type() == "boss_gateway")) {
-		return check_for_path(Coordinate(search_center.get_coordinate_x() - 1, search_center.get_coordinate_y()));
+	if (can_be_path_tile(x - 1, y)) {
+		return check_for_path(Coordinate(x - 1, y));
 	}
 
-	if (is_valid_coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() + 1) 
-		&& !seen_tile(Coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() + 1)) 
-		&& (get_tile(search_center.get_coordinate_x(), search_center.get_coordinate_y() + 1).get_type() == "floor" || get_tile(search_center.get_coordinate_x(), search_center.get_coordinate_y() + 1).get_type() == "boss_gateway")) {
-		return check_for_path(Coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() + 1));
+	if (can_be_path_tile(x, y + 1)) {
+		return check_for_path(Coordinate(x, y + 1));
 	}
 
-	if (is_valid_coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() - 1) 
-		&& !seen_tile(Coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() - 1)) 
-		&& (get_tile(search_center.get_coordinate_x(), search_center.get_coordinate_y() - 1).get_type() == "floor" || get_tile(search_center.get_coordinate_x(), search_center.get_coordinate_y() - 1).get_type() == "boss_gateway")) {
-		return check_for_path(Coordinate(search_center.get_coordinate_x(), search_center.get_coordinate_y() - 1));
+	if (can_be_path_tile(x, y - 1)) {
+		return check_for_path(Coordinate(x, y - 1));
 	}
 	
+	//If none are true return false
 	return false;
 }
 
+//Checks if a path can move to this tile
+bool Level::can_be_path_tile(int x, int y) {
+	//Return true if the coordinate is valid and the tile is not seen yet and the tile is a floor or boss gateway tile
+	if (is_valid_coordinate(x, y) 
+		&& !seen_tile(Coordinate(x, y)) 
+		&& (get_tile(x, y).get_type() == "floor" || get_tile(x, y).get_type() == "boss_gateway")) {
+		return true;
+	}
+
+	return false;
+}
+
+//Returns true if the tile has been seen
 bool Level::seen_tile(Coordinate coordinate) {
+	//Return true if the tile is in the path_tiles vector
 	for (Coordinate tile : path_tiles) {
-		if (coordinate.get_coordinate_x() == tile.get_coordinate_x() 
-			&& coordinate.get_coordinate_y() == tile.get_coordinate_y()) {
+		if (coordinate == tile) {
 			return true;
 		}
 	}
@@ -350,6 +399,7 @@ bool Level::seen_tile(Coordinate coordinate) {
 }
 
 
+//Resets the level so it can be generated again
 void Level::clear() {
 	for (int y = 0; y < kSize; y++) {
 		for (int x = 0; x < kSize; x++) {
@@ -368,16 +418,19 @@ Coordinate Level::get_random_passable_tile_in_radius(int x_center, int y_center,
 			}
 		}
 	}
+
+	//Get a random tile from those found
 	if (tiles.size() > 0) {
 		int index = rand() % tiles.size();
 		return tiles[index];
-	}
-	else {
+	} else {
+		//If none were found return the center
 		return Coordinate(x_center, y_center);
 	}
 
 }
 
+//Gets a random tile in the square (NOT circular) radius based on the coordinate
 Coordinate Level::get_random_passable_tile_in_radius(Coordinate center, int radius) {
 	return get_random_passable_tile_in_radius(center.get_coordinate_x(), center.get_coordinate_y(), radius);
 }

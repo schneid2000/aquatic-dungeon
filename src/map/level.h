@@ -96,6 +96,9 @@ public:
 	bool path_to_gateway();
 	bool check_for_path(Coordinate search_center);
 
+	//Checks if the path can move to this tile
+	bool can_be_path_tile(int x, int y);
+
 	//Returns true if a tile is in the path_tiles vector
 	bool seen_tile(Coordinate coordinate);
 

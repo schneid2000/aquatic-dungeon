@@ -48,7 +48,7 @@
 
 ## Week 1
 
--Map Mechanics
+- Map Mechanics
   - I completed setting up the Level class and its components; Coordinate, Room, and Tile.
   - I overrode the input stream for the room class, so I can input the rooms as presets from a text file.
   - I fixed some developer-friendly issues, like functions that took y, then x values, when x, y values would be more clear.

@@ -108,3 +108,13 @@ TEST_CASE("Getting a count of all passable tiles in a Level") {
 	level.set_tile(0, 1, Tile(true, "floor"));
 	REQUIRE(level.count_all_passable_tiles() == 2);
 }
+
+
+
+
+// Player tests
+
+
+
+
+// Game tests
